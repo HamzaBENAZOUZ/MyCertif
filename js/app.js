@@ -6,6 +6,7 @@ import { createBooks } from "./books.js";
 import { initTV } from "./tv.js";
 import { initCast, isCastTv, renderTvHome } from "./cast.js";
 import { forEar } from "./speech.js";
+import { renderSettings, xpSettings } from "./settings.js";
 
 /** Vrai dans l'application Android (pont vocal AndroidTTS fourni par l'APK). */
 const IN_APP = !!window.AndroidTTS;
@@ -303,6 +304,13 @@ function books() {
   if (!state.books) state.books = createBooks({ store: state.store, getLang, esc, toast, userId: () => state.session?.user?.id, tts: TTS });
   return state.books;
 }
+function renderSettingsView() {
+  stopTimer();
+  state.view = "settings";
+  renderSettings({ app, esc, getLang, tts: TTS, books, toast, version: APP_VC ? APP_VN : "",
+    setLang: l => { setLang(l); applyStaticTexts(); renderSettingsView(); renderUpdate(); paintNav(); },
+    theme: currentTheme, setTheme, checkUpdate: async () => { try { localStorage.removeItem(UPD_KEY); } catch {} await checkUpdate(); return !!(updInfo && updInfo.versionCode > APP_VC); } });
+}
 function renderBooksView() {
   stopTimer();
   state.view = "books";
@@ -315,11 +323,11 @@ function paintNav() {
   nav.hidden = !logged;
   document.body.classList.toggle("has-nav", logged && state.view !== "quiz");
   document.body.classList.toggle("in-quiz", state.view === "quiz");
-  const cur = ["suivi", "history", "books"].includes(state.view) ? state.view : "home";
+  const cur = ["suivi", "history", "books", "settings"].includes(state.view) ? state.view : "home";
   nav.querySelectorAll("[data-main]").forEach(a => {
     a.setAttribute("aria-current", a.dataset.main === cur ? "page" : "false");
-    const k = { home: "nav.train", suivi: "nav.suivi", history: "nav.history", books: "nav.books" }[a.dataset.main];
-    const lab = a.querySelector("span"); if (lab) lab.textContent = getLang() === "fr" ? { "nav.train": "Entraînement", "nav.suivi": "Suivi", "nav.history": "Historique", "nav.books": "Books" }[k] : { "nav.train": "Practice", "nav.suivi": "Tracker", "nav.history": "History", "nav.books": "Books" }[k];
+    const k = { home: "nav.train", suivi: "nav.suivi", history: "nav.history", books: "nav.books", settings: "nav.settings" }[a.dataset.main];
+    const lab = a.querySelector("span"); if (lab) lab.textContent = getLang() === "fr" ? { "nav.train": "Entraînement", "nav.suivi": "Suivi", "nav.history": "Historique", "nav.books": "Books", "nav.settings": "Paramètres" }[k] : { "nav.train": "Practice", "nav.suivi": "Tracker", "nav.history": "History", "nav.books": "Books", "nav.settings": "Settings" }[k];
   });
 }
 
@@ -613,6 +621,7 @@ function route() {
   if (h === "quiz" && state.quiz) return renderQuiz();
   if (h === "results" && state.lastResult) return renderResults();
   if (h === "history") return renderHistory();
+  if (h === "settings") return renderSettingsView();
   if (h === "suivi") return renderSuiviView();
   if (h === "books" || h.startsWith("books/")) return renderBooksView();
   renderHome();
@@ -1162,11 +1171,11 @@ function move(d) {
  * Pour chaque question : la voix annonce le numéro, lit la question et les propositions une par une, les relit une
  * deuxième fois, puis laisse 30 secondes. Une réponse (ou la fin du délai) valide la question ; la voix dit si c'est
  * juste, lit la bonne réponse et l'explication, et la question suivante arrive 4 secondes plus tard. */
-const XP_WAIT = 30, XP_NEXT = 4;
+const xpWait = () => xpSettings().wait, xpNext = () => xpSettings().next;   // Paramètres > Mode express
 const XP_SAY = {
-  fr: { q: "Question {n}.", multi: "Plusieurs réponses sont attendues.", again: "Je relis la question.", go: "Vous avez 30 secondes.",
+  fr: { q: "Question {n}.", multi: "Plusieurs réponses sont attendues.", again: "Je relis la question.", go: "Vous avez {s} secondes.",
         timeUp: "Temps écoulé.", none: "Pas de réponse.", ok: "Exact !", ko: "Mauvaise réponse.", end: "Fin de la série." },
-  en: { q: "Question {n}.", multi: "More than one answer is expected.", again: "Once again.", go: "You have 30 seconds.",
+  en: { q: "Question {n}.", multi: "More than one answer is expected.", again: "Once again.", go: "You have {s} seconds.",
         timeUp: "Time is up.", none: "No answer.", ok: "That's right!", ko: "Incorrect.", end: "End of the set." },
 };
 let xpTok = 0, xpTimers = [], xpLock = null;
@@ -1220,13 +1229,13 @@ function xpDrive() {
     const x = qText(q, lang);
     const once = [x.scenario, x.question, q.multi ? S.multi : "", ...x.options.map((o, k) => `${letter(k)}${lang === "fr" ? " :" : ":"} ${o}`)];
     xpShow(z, t("xp.reading"));
-    xpSay(z, tok, [S.q.replace("{n}", z.i + 1), ...once, S.again, ...once, S.go], lang, () => {
+    xpSay(z, tok, [S.q.replace("{n}", z.i + 1), ...once, S.again, ...once, S.go.replace("{s}", xpWait())], lang, () => {
       z.xp.phase = "wait";
-      const end = Date.now() + XP_WAIT * 1000;
+      const W = xpWait(), end = Date.now() + W * 1000;
       const tick = () => {
         if (!xpAlive(z, tok)) return;
         const left = Math.max(0, Math.ceil((end - Date.now()) / 1000));
-        xpShow(z, t("xp.left", { s: left }), left / XP_WAIT, left <= 10);
+        xpShow(z, t("xp.left", { s: left }), left / W, left <= Math.min(10, W / 3));
         if (left <= 0) { xpClear(); z.checked[z.i] = true; autoSave(); renderQuiz(); }   // validation de ce qui est coché
       };
       xpTimers.push(setInterval(tick, 250)); tick();
@@ -1241,11 +1250,11 @@ function xpDrive() {
     z.xp.phase = "next";
     const last = z.i === z.questions.length - 1;
     if (last) return xpSay(z, tok, [S.end], lang, () => { xpAwake(false); finishQuiz(); });
-    let n = XP_NEXT;
+    const N = xpNext(); let n = N;
     const tick = () => {
       if (!xpAlive(z, tok)) return;
       if (n <= 0) { xpClear(); move(1); return; }
-      xpShow(z, t("xp.next", { s: n }), n / XP_NEXT); n--;
+      xpShow(z, t("xp.next", { s: n }), n / N); n--;
     };
     xpTimers.push(setInterval(tick, 1000)); tick();
   });

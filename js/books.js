@@ -1488,5 +1488,9 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   }
   const nextOf = (b, n) => { const i = b.chapters.findIndex(c => c.n === n); return b.chapters[i + 1] && b.chapters[i + 1].n; };
 
-  return { render, sync, forget, stop };
+  return { render, sync, forget, stop,
+    // onglet Paramètres : mêmes préférences de lecture que le lecteur
+    prefs: () => prefs, RATES: RATE_PRESETS, GAPS,
+    setPref: (k, v) => { prefs[k] = k === "rate" ? clampRate(v) : v; savePrefs(); },
+    setVoice: (lang, id) => { prefs.vname[lang] = id || ""; savePrefs(); } };
 }
