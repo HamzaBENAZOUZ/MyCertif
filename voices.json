@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "sherpa": "1.12.14",
+  "engine": {
+    "arm64-v8a": {
+      "file": "engine-arm64-v8a.zip",
+      "size": 7580734,
+      "sha256": "b87fd5b27a487b4b798b69a399564a0bf49077c2d0fea8606b8a7d1744c4233b"
+    },
+    "armeabi-v7a": {
+      "file": "engine-armeabi-v7a.zip",
+      "size": 6941015,
+      "sha256": "6d90b2c0bd706e8356c92e8eeddd2d105045fe89e74e7ef34e033ff691ea6cb5"
+    }
+  },
+  "data": {
+    "file": "espeak-ng-data.zip",
+    "size": 539200,
+    "sha256": "b9c27107efaaf2163a0bf3d9e1202689f4a6941e550defa0b3616a3ba528e4c1"
+  },
+  "fr": {
+    "file": "voice-fr.zip",
+    "size": 58406720,
+    "sha256": "e986555779ddd6332afc1f49bfe47b0fb0404918b6e15e921247db17604879ef",
+    "name": "Siwis",
+    "lang": "fr-FR",
+    "license": "CC BY 4.0"
+  },
+  "en": {
+    "file": "voice-en.zip",
+    "size": 58460881,
+    "sha256": "44edc419920f97b0b1f09d5a0ad1789755e3b9f67d1a8fef8560398095729254",
+    "name": "Kristin",
+    "lang": "en-US",
+    "license": "Public domain"
+  }
+}
