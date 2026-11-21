@@ -8,7 +8,7 @@
 //  - abréviations (e.g., i.e., vs., cf., &) en toutes lettres.
 // Utilisé par le lecteur des livres, les boutons « Écouter » du QCM et les livres envoyés dans Android Auto.
 
-export const SPEECH_V = "a2";      // à changer quand les règles changent : les livres déjà dans la voiture sont proposés à la mise à jour
+export const SPEECH_V = "a3";      // à changer quand les règles changent : les livres déjà dans la voiture sont proposés à la mise à jour
 
 const W = {
   fr: { link: "lien vers", or: "ou", and: "et", then: "puis", eq: "égal", ne: "différent de", ge: "supérieur ou égal à", le: "inférieur ou égal à",
@@ -19,6 +19,21 @@ const W = {
         nb: "note", sect: "section", code: "Code example", codeN: "Code example of {n} lines, see the screen" },
 };
 const words = lang => W[lang === "fr" ? "fr" : "en"];
+
+// Sigles lus d'un seul mot (on ne les épelle pas) ; tous les autres sigles de 2 à 6 capitales sont épelés : DNS → « D N S ».
+const SAY_AS_WORD = new Set(("NAT RAM WAF CIDR JSON YAML SAML REST CRUD ASCII LAN WAN OK GUI SOAP POSIX RAID FIFO LIFO ACID BASE CORS "
+  + "CAPTCHA SIEM NASA UNIX LINUX AJAX WIFI SWIFT ISO NOSQL MAC PIN ZIP JAR WAR GIF PNG JPEG MIME TOTP HOTP SONAR RADAR LASER FAQ "
+  + "LE LA LES UN UNE ET OU DE DU DES EN AU AUX CE SI NE PAS QUI QUE EST SUR PAR POUR AVEC DANS "
+  + "THE AND OR OF TO IN ON IS IT AN AS AT BY BE NOT FOR ALL ANY ONE TWO NEW USE YES NO NOTE TIP WHY HOW WHAT WHEN").split(" "));
+const ROMAN = /^(?=[IVXLC]+$)M*(C[MD]|D?C{0,3})(X[CL]|L?X{0,3})(I[XV]|V?I{0,3})$/;
+/** « DNS » → « D N S », « EC2 » → « E C 2 », « AMIs » → « A M I s » ; mots en capitales et chiffres romains laissés tels quels. */
+function spellAcronyms(s) {
+  s = s.replace(/([a-z])([A-Z]{2,6})\b/g, "$1 $2");   // CloudHSM → Cloud HSM, puis épelé
+  return s.replace(/\b([A-Z]{2,6})(\d*)(s?)\b/g, (m, L, d, pl) => {
+    if (SAY_AS_WORD.has(L) || ROMAN.test(L)) return m;
+    return L.split("").join(" ") + (d ? " " + d : "") + (pl ? " s" : "");
+  });
+}
 
 /** Un chemin lu dossier par dossier : « $SPLUNK_HOME/etc/apps » → « SPLUNK HOME, etc, apps ». */
 function pathWords(p) {
@@ -95,6 +110,9 @@ export function forEar(text, lang = "en") {
 
   // identifiants : _time, access_combined, my_app
   s = s.replace(/_+/g, " ");
+
+  // sigles épelés lettre par lettre
+  s = spellAcronyms(s);
 
   // parenthèses → pauses ; symboles muets
   s = s.replace(/[()]/g, ", ")

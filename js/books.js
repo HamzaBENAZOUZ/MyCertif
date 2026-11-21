@@ -68,6 +68,7 @@ const L = {
     trWait: "Le service de traduction limite les demandes : reprise dans {s} s…",
     trOnline: "Traduction automatique en ligne (service de traduction de Google) : le texte peut contenir des erreurs.",
     trDevice: "Traduction automatique sur le téléphone : le texte peut contenir des erreurs.",
+    gap: "Pause entre les phrases (téléphone et voiture)", gapNone: "aucune", dec: ",",
     chain: "Enchaîner automatiquement le chapitre suivant", awake: "Garder l'écran allumé pendant l'écoute", backLib: "Bibliothèque",
     bgT: "Écoute écran éteint", bgOk: "Prêt : la lecture continue appli fermée ou téléphone verrouillé, avec la notification de lecture.",
     bgNotif: "Notifications coupées : la commande lecture / pause n'apparaîtra pas en haut de l'écran.", bgNotifB: "Autoriser les notifications",
@@ -126,6 +127,7 @@ const L = {
     trWait: "The translation service is limiting requests: resuming in {s} s…",
     trOnline: "Online machine translation (Google's translation service): the text may contain mistakes.",
     trDevice: "Machine translation on the phone: the text may contain mistakes.",
+    gap: "Pause between sentences (phone and car)", gapNone: "none", dec: ".",
     chain: "Automatically continue with the next chapter", awake: "Keep the screen on while listening", backLib: "Library",
     bgT: "Screen-off listening", bgOk: "Ready: reading goes on with the app closed or the phone locked, with the playback notification.",
     bgNotif: "Notifications are off: the play / pause control will not show at the top of the screen.", bgNotifB: "Allow notifications",
@@ -143,7 +145,8 @@ const wrj = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStor
 export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   let P = rdj(PKEY) || {};
   P.books ||= {}; P.last ||= {}; P.pos ||= {}; P.dirty ||= {};
-  const prefs = { lang: null, rate: 1, font: 1, ...(rdj(PREF) || {}) };
+  const prefs = { lang: null, rate: 1, font: 1, gap: 0.6, ...(rdj(PREF) || {}) };
+  const GAPS = [0, 0.3, 0.6, 1, 1.5];   // pause entre deux phrases, en secondes
   prefs.vname ||= {};                                   // voix choisie par langue : { fr: id, en: id }
   const clampRate = r => Math.round(Math.min(RATE_MAX, Math.max(RATE_MIN, +r || 1)) * 100) / 100;
   prefs.rate = clampRate(prefs.rate);
@@ -361,7 +364,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   const car = () => window.AndroidCar || null;
   function carSettings() {
     const c = car(); if (!c) return;
-    try { c.settings(JSON.stringify({ rate: prefs.rate, voice: prefs.vname || {}, chain: prefs.chain })); } catch { /* ancienne appli */ }
+    try { c.settings(JSON.stringify({ rate: prefs.rate, voice: prefs.vname || {}, chain: prefs.chain, gap: Math.round((+prefs.gap || 0) * 1000) })); } catch { /* ancienne appli */ }
   }
   const carV = b => String(b.version || "") + "~" + SPEECH_V;      // texte adapté à l'écoute : nouvelles règles = livre à renvoyer
   const carVersion = b => { const c = car(); try { return c ? c.bookVersion(b.id) || "" : ""; } catch { return ""; } };
@@ -943,6 +946,9 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
         </div>
         <div class="row bk-set-pre">${RATE_PRESETS.map(x => `<button class="seg-btn mono" data-rate="${x}">${x}×</button>`).join("")}</div>
       </div>
+      <div class="bk-set-f"><span class="mono muted">${esc(t("gap"))}</span>
+        <div class="row bk-set-pre" id="bk-gap">${GAPS.map(x => `<button class="seg-btn mono" data-gap="${x}">${x ? String(x).replace(".", t("dec")) + " s" : esc(t("gapNone"))}</button>`).join("")}</div>
+      </div>
       <label class="bk-set-chain"><input type="checkbox" id="bk-chain"> <span>${esc(t("chain"))}</span></label>
       <label class="bk-set-chain"><input type="checkbox" id="bk-awake"> <span>${esc(t("awake"))}</span></label>
       ${window.AndroidListen ? `<div class="bk-set-bg" id="bk-bg"></div>` : ""}
@@ -1262,7 +1268,10 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       if (rc.top < (parseInt(document.documentElement.style.getPropertyValue("--tb-h")) || 60) + 56 || rc.bottom > innerHeight - 40) el.scrollIntoView({ behavior: "smooth", block: "center" });
       say(segs[j].txt, player.lang, () => {
         if (!player || my !== player.token) return;
-        if (j + 1 < segs.length) play(j + 1);
+        if (j + 1 < segs.length) {   // petite pause entre deux phrases (réglage « Pause entre les phrases »)
+          const g = (+prefs.gap || 0) * 1000;
+          if (g > 0) setTimeout(() => { if (player && my === player.token) play(j + 1); }, g); else play(j + 1);
+        }
         else {
           player.playing = false; player.i = 0; P.pos[key] = 0; wrj(PKEY, P); onEnd();
           const nx = prefs.chain && nextOf(b, ch.n);
@@ -1374,6 +1383,10 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       if (bar.hidden || e.target.closest("a, button")) return;
       const s = e.target.closest(".bk-seg"); if (s) play(+s.dataset.seg);
     });
+    const gapBox = set.querySelector("#bk-gap");
+    const paintGap = () => gapBox.querySelectorAll("[data-gap]").forEach(x => x.setAttribute("aria-pressed", String(+x.dataset.gap === +prefs.gap)));
+    gapBox.onclick = e => { const x = e.target.closest("[data-gap]"); if (!x) return; prefs.gap = +x.dataset.gap; savePrefs(); paintGap(); };
+    paintGap();
     const chain = set.querySelector("#bk-chain");
     chain.checked = prefs.chain;
     chain.onchange = () => { prefs.chain = chain.checked; savePrefs(); };
