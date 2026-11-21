@@ -599,6 +599,7 @@ async function refreshProgress() {
 }
 
 function route() {
+  xpStop();
   stopSpeak();
   if (state.books) state.books.stop();
   setTimeout(paintNav, 0);
@@ -848,6 +849,16 @@ function renderHome() {
         <button class="btn btn-primary" id="btn-exam">${esc(t("home.start"))}</button>
       </div>
     </div>
+    ${canSpeak ? `<div class="action">
+      <h3 class="mono">${esc(t("xp.title"))}</h3>
+      <p class="muted">${esc(t("xp.desc"))}</p>
+      <div class="row">
+        <select id="xp-size" aria-label="${esc(t("home.nQuestions", { n: "" }))}">
+          ${[10, 20, 40, 65].map(n => `<option value="${n}" ${n === 20 ? "selected" : ""}>${esc(t("home.nQuestions", { n }))}</option>`).join("")}
+        </select>
+        <button class="btn btn-primary" id="btn-xp">⚡ ${esc(t("xp.start"))}</button>
+      </div>
+    </div>` : ""}
     <div class="action">
       <h3 class="mono">${esc(t("home.mistakes"))}</h3>
       <p class="muted">${esc(t("home.mistakesDesc"))}</p>
@@ -897,6 +908,11 @@ function renderHome() {
     const n = +document.getElementById("exam-size").value;
     startQuiz({ mode: "exam", chapter_id: null, lab: { k: "exam", n }, questions: shuffle(SQ).slice(0, n), feedback: false, timed: n * SEC_PER_Q });
   };
+  const bx = document.getElementById("btn-xp");
+  if (bx) bx.onclick = () => {
+    const qs = shuffle(SQ).slice(0, +document.getElementById("xp-size").value);
+    startQuiz({ mode: "domain", chapter_id: null, lab: { k: "express", n: qs.length }, questions: qs, feedback: true, express: true });
+  };
   document.getElementById("btn-mistakes").onclick = () => {
     startQuiz({ mode: "mistakes", chapter_id: null, lab: { k: "mistakes" }, questions: shuffle(mistakes(inSec)), feedback: true });
   };
@@ -929,6 +945,7 @@ function labelOf(lab) {
     case "mistakesCh": return t("mode.mistakesCh", { n: chLabel(lab.id) });
     case "domain": return t("mode.domain", { d: dNum(lab.d), name: t("domain." + lab.d) });
     case "exam": return t("mode.exam", { n: lab.n });
+    case "express": return t("mode.express", { n: lab.n });
     case "mistakes": return t("mode.mistakes");
     case "flagged": return t("mode.flagged");
     case "errorsOf": return t("mode.errorsOf", { label: labelOf(lab.of) });
@@ -1014,7 +1031,7 @@ function startQuiz(opts, resume = null) {
 }
 
 function renderQuiz() {
-  stopSpeak();
+  if (!state.quiz || !state.quiz.express) stopSpeak();   // en express, la voix continue d'une mise à jour de l'écran à l'autre
   state.view = "quiz";
   const z = state.quiz;
   const q = z.questions[z.i];
@@ -1057,6 +1074,7 @@ function renderQuiz() {
       </div>
       <div class="quiz-head-right">
         <span id="timer" class="timer mono">${z.timed ? fmtTime(Math.max(0, z.timed - z.elapsed)) : fmtTime(z.elapsed)}</span>
+        ${z.feedback && canSpeak ? `<button class="btn btn-ghost btn-sm btn-express ${z.express ? "on" : ""}" id="btn-express" title="${esc(t("xp.onTitle"))}">${esc(z.express ? t("xp.pause") : t("xp.on"))}</button>` : ""}
         <button class="btn btn-ghost btn-sm" id="btn-save" title="${esc(t("save.title"))}">💾 ${esc(t("save.btn"))}</button>
         <button class="btn btn-ghost btn-sm" id="btn-quit">${esc(t("quiz.quit"))}</button>
       </div>
@@ -1079,6 +1097,7 @@ function renderQuiz() {
         <div class="verdict-row"><p class="mono verdict">${esc(isOk ? t("quiz.granted") : t("quiz.denied", { a: q.correct.join(", ") }))}</p><div class="speak-row">${speakBtn(q, txt.lang, "answer")}</div></div>
         <p>${esc(txt.explanation)}</p>
       </div>` : ""}
+      ${z.express ? `<div class="xp-bar ${z.xpView && z.xpView[2] ? "hurry" : ""}" id="xp-bar"><span class="xp-fill" id="xp-fill" style="width:${z.xpView && z.xpView[1] != null ? z.xpView[1] * 100 : 0}%"></span><span id="xp-txt">${esc(z.xpView ? z.xpView[0] : "")}</span></div>` : ""}
     </article>
 
     <div class="quiz-nav">
@@ -1108,8 +1127,10 @@ function renderQuiz() {
   });
   on("btn-finish-early", () => { if (confirm(t("quiz.finishEarly", { n: z.questions.length - answered }))) finishQuiz(); });
   on("btn-save", () => saveQuiz());
+  on("btn-express", toggleExpress);
   on("btn-quit", () => go(""));
   app.querySelectorAll("[data-goto]").forEach(b => b.onclick = () => { z.i = +b.dataset.goto; z.peek = false; renderQuiz(); });
+  if (z.express) xpDrive();
 }
 
 function toggle(L) {
@@ -1120,6 +1141,7 @@ function toggle(L) {
   if (q.multi) p = p.includes(L) ? p.filter(x => x !== L) : [...p, L];
   else p = p[0] === L ? [] : [L];
   z.picks[z.i] = p;
+  if (z.express && !q.multi && p.length) z.checked[z.i] = true;   // express : un choix unique vaut validation
   autoSave();
   renderQuiz();
 }
@@ -1134,6 +1156,99 @@ function move(d) {
   autoSave();
   renderQuiz();
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* ---------- Mode express ----------
+ * Pour chaque question : la voix annonce le numéro, lit la question et les propositions une par une, les relit une
+ * deuxième fois, puis laisse 30 secondes. Une réponse (ou la fin du délai) valide la question ; la voix dit si c'est
+ * juste, lit la bonne réponse et l'explication, et la question suivante arrive 4 secondes plus tard. */
+const XP_WAIT = 30, XP_NEXT = 4;
+const XP_SAY = {
+  fr: { q: "Question {n}.", multi: "Plusieurs réponses sont attendues.", again: "Je relis la question.", go: "Vous avez 30 secondes.",
+        timeUp: "Temps écoulé.", none: "Pas de réponse.", ok: "Exact !", ko: "Mauvaise réponse.", end: "Fin de la série." },
+  en: { q: "Question {n}.", multi: "More than one answer is expected.", again: "Once again.", go: "You have 30 seconds.",
+        timeUp: "Time is up.", none: "No answer.", ok: "That's right!", ko: "Incorrect.", end: "End of the set." },
+};
+let xpTok = 0, xpTimers = [], xpLock = null;
+function xpClear() { xpTok++; xpTimers.forEach(id => { clearTimeout(id); clearInterval(id); }); xpTimers = []; }
+function xpAwake(on) {   // écran allumé pendant la série (appli : AndroidMedia.screen ; navigateur : Wake Lock)
+  try { if (window.AndroidMedia && window.AndroidMedia.screen) window.AndroidMedia.screen(!!on); } catch { /* */ }
+  try {
+    if (on && !xpLock && navigator.wakeLock) navigator.wakeLock.request("screen").then(l => { xpLock = l; }).catch(() => {});
+    else if (!on && xpLock) { xpLock.release().catch(() => {}); xpLock = null; }
+  } catch { /* */ }
+}
+function xpStop() { xpClear(); xpAwake(false); if (state.quiz) { state.quiz.xp = null; state.quiz.xpView = null; } }
+const xpAlive = (z, tok) => tok === xpTok && state.quiz === z && z.express && state.view === "quiz";
+function xpShow(z, msg, frac = null, hurry = false) {
+  z.xpView = [msg, frac, hurry];
+  const b = document.getElementById("xp-bar"), f = document.getElementById("xp-fill"), x = document.getElementById("xp-txt");
+  if (x) x.textContent = msg;
+  if (f) f.style.width = (frac == null ? 0 : frac * 100) + "%";
+  if (b) b.classList.toggle("hurry", !!hurry);
+}
+/** Lit les morceaux l'un après l'autre (petite pause entre deux), puis appelle then. */
+function xpSay(z, tok, parts, lang, then) {
+  const list = parts.filter(Boolean);
+  let k = 0;
+  const next = () => {
+    if (!xpAlive(z, tok)) return;
+    if (k >= list.length) return then();
+    speakText(list[k++], lang, 1, () => { if (xpAlive(z, tok)) xpTimers.push(setTimeout(next, 300)); });
+  };
+  next();
+}
+function toggleExpress() {
+  const z = state.quiz; if (!z) return;
+  z.express = !z.express;
+  if (!z.express) { xpStop(); stopSpeak(); }
+  renderQuiz();
+}
+function xpDrive() {
+  const z = state.quiz; if (!z || !z.express) return;
+  if (!canSpeak) { z.express = false; toast(t("xp.noVoice"), "warn"); return renderQuiz(); }
+  const checked = z.checked[z.i];
+  const running = z.xp && z.xp.i === z.i && (checked ? ["answer", "next"] : ["ask", "wait"]).includes(z.xp.phase);
+  if (running) return;                      // simple mise à jour de l'écran : la séquence en cours continue
+  xpClear(); stopSpeak(); xpAwake(true);
+  const tok = xpTok, q = z.questions[z.i];
+  const lang = (z.peek ? (getLang() === "fr" ? "en" : "fr") : getLang()) === "fr" ? "fr" : "en";
+  const S = XP_SAY[lang];
+  z.xp = { i: z.i, phase: checked ? "answer" : "ask" };
+
+  if (!checked) {
+    const x = qText(q, lang);
+    const once = [x.scenario, x.question, q.multi ? S.multi : "", ...x.options.map((o, k) => `${letter(k)}${lang === "fr" ? " :" : ":"} ${o}`)];
+    xpShow(z, t("xp.reading"));
+    xpSay(z, tok, [S.q.replace("{n}", z.i + 1), ...once, S.again, ...once, S.go], lang, () => {
+      z.xp.phase = "wait";
+      const end = Date.now() + XP_WAIT * 1000;
+      const tick = () => {
+        if (!xpAlive(z, tok)) return;
+        const left = Math.max(0, Math.ceil((end - Date.now()) / 1000));
+        xpShow(z, t("xp.left", { s: left }), left / XP_WAIT, left <= 10);
+        if (left <= 0) { xpClear(); z.checked[z.i] = true; autoSave(); renderQuiz(); }   // validation de ce qui est coché
+      };
+      xpTimers.push(setInterval(tick, 250)); tick();
+    });
+    return;
+  }
+
+  const picks = z.picks[z.i], ok = sameSet(picks, q.correct);
+  const verdict = !picks.length ? `${S.timeUp} ${S.none}` : ok ? S.ok : S.ko;
+  xpShow(z, t("xp.answer"));
+  xpSay(z, tok, [verdict, answerSpeech(q, lang, "answer")], lang, () => {
+    z.xp.phase = "next";
+    const last = z.i === z.questions.length - 1;
+    if (last) return xpSay(z, tok, [S.end], lang, () => { xpAwake(false); finishQuiz(); });
+    let n = XP_NEXT;
+    const tick = () => {
+      if (!xpAlive(z, tok)) return;
+      if (n <= 0) { xpClear(); move(1); return; }
+      xpShow(z, t("xp.next", { s: n }), n / XP_NEXT); n--;
+    };
+    xpTimers.push(setInterval(tick, 1000)); tick();
+  });
 }
 
 async function finishQuiz() {

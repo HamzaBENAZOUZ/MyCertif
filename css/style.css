@@ -993,3 +993,10 @@ body.cast-tv-on { overflow: hidden; }
 .arch-list { list-style: none; padding: 0; margin: .4rem 0 0; display: flex; flex-direction: column; gap: .4rem; }
 .arch-list li { display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap;
   padding: .45rem .7rem; border: 1px dashed var(--line-2); border-radius: 10px; }
+/* Mode express */
+.btn-express.on { color: var(--bg, #000); background: var(--cyan); border-color: var(--cyan); }
+.xp-bar { margin: .8rem 0 0; padding: .5rem .8rem; border: 1px solid var(--line-2); border-radius: 10px;
+  font-family: var(--mono, monospace); color: var(--cyan); position: relative; overflow: hidden; }
+.xp-bar .xp-fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--cyan); opacity: .15; transition: width 1s linear; }
+.xp-bar.hurry { color: var(--red); border-color: var(--red); }
+.xp-bar span { position: relative; }
