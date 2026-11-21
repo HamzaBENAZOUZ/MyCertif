@@ -1000,3 +1000,6 @@ body.cast-tv-on { overflow: hidden; }
 .xp-bar .xp-fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--cyan); opacity: .15; transition: width 1s linear; }
 .xp-bar.hurry { color: var(--red); border-color: var(--red); }
 .xp-bar span { position: relative; }
+/* Temps de lecture et d'écoute : livre entier et chapitre */
+.bk-total, .bk-ch-eta { margin: .5rem 0 .2rem; font-size: .85rem; color: var(--muted, inherit); line-height: 1.5; }
+.bk-total strong, .bk-ch-eta strong { color: var(--text, inherit); }

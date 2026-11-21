@@ -44,7 +44,8 @@ const L = {
     m_toc: "sommaire du livre", m_files: "un chapitre par fichier du livre (pas de sommaire)", m_outline: "signets du PDF",
     m_headings: "titres repérés dans le texte", m_pages5: "toutes les 5 pages", m_pages10: "toutes les 10 pages", m_pages20: "toutes les 20 pages",
     etaRead: "Temps de lecture estimé", etaListen: "Temps d'écoute estimé (à la vitesse {r}×)",
-    min: "min", upNote: "Les images et tableaux complexes ne sont pas repris : seul le texte est gardé.",
+    min: "min", etaBook: "Tout le livre", etaCh: "Ce chapitre", etaR: "à lire", etaV: "avec la voix", etaWait: "calcul du temps…",
+    upNote: "Les images et tableaux complexes ne sont pas repris : seul le texte est gardé.",
     badType: "Ce fichier n'est ni un PDF ni un EPUB.", badEpub: "Cet EPUB est illisible ou abîmé.",
     noText: "Aucun texte trouvé : c'est sans doute un PDF scanné (des images de pages), qui ne peut pas être lu à voix haute.",
     front: "Début du document", part: "partie", pages: "Pages", section: "Section",
@@ -101,7 +102,8 @@ const L = {
     m_toc: "the book's table of contents", m_files: "one chapter per file in the book (no table of contents)", m_outline: "PDF bookmarks",
     m_headings: "headings found in the text", m_pages5: "every 5 pages", m_pages10: "every 10 pages", m_pages20: "every 20 pages",
     etaRead: "Estimated reading time", etaListen: "Estimated listening time (at {r}× speed)",
-    min: "min", upNote: "Images and complex tables are left out: only the text is kept.",
+    min: "min", etaBook: "Whole book", etaCh: "This chapter", etaR: "reading", etaV: "with the voice", etaWait: "working out the time…",
+    upNote: "Images and complex tables are left out: only the text is kept.",
     badType: "This file is neither a PDF nor an EPUB.", badEpub: "This EPUB is unreadable or damaged.",
     noText: "No text found: this is probably a scanned PDF (page images), which cannot be read aloud.",
     front: "Start of the document", part: "part", pages: "Pages", section: "Section",
@@ -279,6 +281,26 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     const r = mins(w / WPM_READ), l = mins(w / (WPM_LISTEN * prefs.rate));
     return `<span title="${esc(t("etaRead"))}">📖 ${r} ${esc(t("min"))}</span>`
       + (listen && tts.can ? ` · <span title="${esc(t("etaListen", { r: prefs.rate }))}">🎧 ${l} ${esc(t("min"))}</span>` : "");
+  }
+  /** 75 → « 1 h 15 », 44 → « 44 min ». */
+  const fmtDur = m => m < 60 ? `${m} ${t("min")}` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")}`;
+  /** « Tout le livre : 📖 2 h 10 à lire · 🎧 3 h 05 avec la voix » (vitesse de la voix choisie dans les réglages). */
+  function etaLine(w, label) {
+    if (!w) return "";
+    const r = mins(w / WPM_READ), l = mins(w / (WPM_LISTEN * prefs.rate));
+    return `<strong>${esc(label)}</strong> : <span title="${esc(t("etaRead"))}">📖 ${esc(fmtDur(r))} ${esc(t("etaR"))}</span>`
+      + (tts.can ? ` · <span title="${esc(t("etaListen", { r: prefs.rate }))}">🎧 ${esc(fmtDur(l))} ${esc(t("etaV"))}</span>` : "");
+  }
+  /** Total du livre : nombre de mots gardé en mémoire, sinon chargement des chapitres (une seule fois). */
+  async function fillBookEta(b, el) {
+    if (!el) return;
+    try {
+      const ws = await Promise.all(b.chapters.map(async c => {
+        const w = wcGet(b, c.n); if (w != null) return w;
+        const ch = await loadChapter(b, c.n); return ch ? chWords(b, ch) : 0;
+      }));
+      if (el.isConnected) el.innerHTML = etaLine(ws.reduce((a, x) => a + x, 0), t("etaBook"));
+    } catch { if (el.isConnected) el.textContent = ""; }   // hors ligne sans copie : pas de total
   }
   const etaSpan = (b, n) => { const w = wcGet(b, n); return `<span class="bk-eta mono" data-eta="${esc(b.id)}|${n}">${w != null ? etaHtml(w) : ""}</span>`; };
   /** Remplit les temps encore inconnus (charge le chapitre une fois, puis le nombre de mots reste en mémoire). */
@@ -650,8 +672,8 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
           ${b.author ? `<p class="muted bk-author">${esc(t("by"))} ${esc(b.author)}</p>` : ""}
           <div class="bk-hero-stats">${ring(s.total ? s.read / s.total : 0, Math.round(s.total ? (s.read / s.total) * 100 : 0) + "%")}
             <div class="mono"><strong>${s.read}/${s.total}</strong> ${esc(t("chapters"))} ${esc(t("read"))}${s.avg != null ? `<br><strong>${s.avg} %</strong> ${esc(t("quizAvg"))}` : ""}</div></div>
+          <p class="bk-total mono" id="bk-total">${esc(t("etaWait"))}</p>
           <div class="row bk-hero-acts">
-            ${etaSpan(b, n)}
             <a class="btn btn-primary" href="#/books/${encodeURIComponent(b.id)}/${n}">${esc(s.read || P.last[b.id] ? t("cont") : t("start"))} · ${esc(t("chapter"))} ${n}</a>
             ${store.kind === "supabase" ? (downloaded(b)
               ? `<span class="bk-dl-ok mono">✓ ${esc(t("dlDone"))}</span>`
@@ -681,6 +703,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
         }).join("")}</ol></section>`).join("")}
     </div>`;
     fillEta(root);
+    fillBookEta(b, root.querySelector("#bk-total"));
     const dl = root.querySelector("#bk-dl");
     if (dl) dl.onclick = async () => {
       dl.disabled = true; dl.textContent = t("dlBusy");
@@ -866,6 +889,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       <header class="bk-ch-head">
         <p class="kicker mono">${esc(pick(ch, "section", lang))}${pick(ch, "section", lang) ? " · " : ""}${esc(t("chapter"))} ${n}/${b.chapters.length}</p>
         <h1 class="bk-ch-title" lang="${lang}">${esc(pick(ch, "title", trOn ? "en" : lang))}</h1>
+        <p class="bk-ch-eta mono">${etaLine(chWords(b, ch), t("etaCh"))}</p>
         <div class="bk-tools">
           ${u ? `${trOn ? "" : `<div class="seg" role="group" aria-label="${esc(t("upVoice"))}" title="${esc(t("upVoice"))}">
             <span class="seg-lab mono muted">${esc(t("voice"))}</span>
