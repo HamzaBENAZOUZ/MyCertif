@@ -1016,3 +1016,31 @@ body.cast-tv-on { overflow: hidden; }
 .set-bar { height: 6px; border-radius: 4px; background: var(--line-2); overflow: hidden; margin: .3rem 0 .5rem; }
 .set-bar span { display: block; height: 100%; background: var(--cyan); transition: width .3s; }
 .set-err { color: var(--red); }
+
+/* ---------- onglet Examens (fiches officielles) ---------- */
+.exam-panel { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; margin: 0 0 18px; }
+.exam-panel h3 { margin: 0 0 4px; }
+.exam-panel p { margin: 0; }
+.exams .ex-jump { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 18px; }
+.exams .ex-jump a { text-decoration: none; }
+.ex-card { margin: 0 0 18px; scroll-margin-top: 80px; }
+.ex-card h2 { margin: 2px 0 12px; }
+.ex-quick { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin: 0 0 12px; }
+.ex-quick .stat { padding: 10px 12px; }
+.ex-quick .stat-val { font-size: 1.25rem; }
+.ex-table th[scope="row"] { text-align: left; white-space: nowrap; width: 1%; padding-right: 14px; color: var(--muted, inherit); font-weight: 600; vertical-align: top; }
+.ex-table td, .ex-table th { padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
+.ex-table tr:last-child td, .ex-table tr:last-child th { border-bottom: 0; }
+.ex-h { margin: 16px 0 8px; }
+.ex-topics { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 6px; }
+.ex-topics li { display: grid; grid-template-columns: minmax(0, 1fr) 90px 44px; gap: 10px; align-items: center; font-size: .9rem; }
+.ex-topics li .mono { text-align: right; }
+.ex-card .hint { font-size: .86rem; }
+.ex-src { margin: 0; padding-left: 18px; }
+.exams section.panel h3 { margin-top: 14px; }
+.exams section.panel h3:first-child { margin-top: 0; }
+@media (max-width: 560px) {
+  .ex-table th[scope="row"] { white-space: normal; width: 34%; }
+  .ex-topics li { grid-template-columns: minmax(0, 1fr) 60px 40px; }
+  .ex-quick .stat-val { font-size: 1.05rem; }
+}

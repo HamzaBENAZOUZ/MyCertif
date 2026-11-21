@@ -7,6 +7,7 @@ import { initTV } from "./tv.js";
 import { initCast, isCastTv, renderTvHome } from "./cast.js";
 import { forEar } from "./speech.js";
 import { renderSettings, xpSettings } from "./settings.js";
+import { renderExams, examQuick } from "./exams.js";
 
 /** Vrai dans l'application Android (pont vocal AndroidTTS fourni par l'APK). */
 const IN_APP = !!window.AndroidTTS;
@@ -310,6 +311,21 @@ function renderSettingsView() {
   renderSettings({ app, esc, getLang, tts: TTS, books, toast, version: APP_VC ? APP_VN : "",
     setLang: l => { setLang(l); applyStaticTexts(); renderSettingsView(); renderUpdate(); paintNav(); },
     theme: currentTheme, setTheme, checkUpdate: async () => { try { localStorage.removeItem(UPD_KEY); } catch {} await checkUpdate(); return !!(updInfo && updInfo.versionCode > APP_VC); } });
+}
+function renderExamsView() {
+  stopTimer();
+  state.view = "exams";
+  renderExams({ app, esc, getLang, hash: location.hash, hasSec });
+}
+/** Encadré d'accueil : résumé de l'examen officiel de la certification affichée, lien vers sa fiche. */
+function examPanel(sec) {
+  const x = examQuick(sec, getLang()); if (!x) return "";
+  const fr = getLang() === "fr";
+  return `<section class="panel exam-panel">
+    <div><h3 class="mono">📋 ${esc(fr ? "L'examen officiel" : "The official exam")} · ${esc(x.code)}</h3>
+    <p class="muted mono small">${esc(x.line)}</p></div>
+    <a class="btn btn-ghost btn-sm" href="#/exams/${sec}">${esc(fr ? "Voir la fiche (lieu, inscription, règles)" : "See the exam sheet (where, registration, rules)")}</a>
+  </section>`;
 }
 function renderBooksView() {
   stopTimer();
@@ -622,6 +638,7 @@ function route() {
   if (h === "results" && state.lastResult) return renderResults();
   if (h === "history") return renderHistory();
   if (h === "settings") return renderSettingsView();
+  if (h === "exams" || h.startsWith("exams/")) return renderExamsView();
   if (h === "suivi") return renderSuiviView();
   if (h === "books" || h.startsWith("books/")) return renderBooksView();
   renderHome();
@@ -844,6 +861,7 @@ function renderHome() {
     </div>
   </section>
 
+  ${examPanel(sec)}
   <div id="offline-slot"></div>
   ${archivePanel(sec)}
   <div id="saved-slot">${savedPanel()}</div>
