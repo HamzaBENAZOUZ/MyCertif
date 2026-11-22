@@ -375,14 +375,26 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   }
   const carV = b => String(b.version || "") + "~" + SPEECH_V;      // texte adapté à l'écoute : nouvelles règles = livre à renvoyer
   const carVersion = b => { const c = car(); try { return c ? c.bookVersion(b.id) || "" : ""; } catch { return ""; } };
+  /**
+   * Case de tableau à lire ? Non si elle contient des paragraphes (lus un par un), si elle est vide ou si ce n'est
+   * que le texte d'une icône (« Une icône d'un globe », « An icon of… » : décoration du livre).
+   */
+  const ICON_RX = /^(une?\s+|an?\s+|l['’]\s*)?(ic[ôo]ne?s?|icon|pictogrammes?|logo|image|picture|illustration)\b/i;
+  function cellSay(el) {
+    if (el.querySelector("p, li, h3, pre, table")) return null;
+    const x = cellX(el).replace(/\n+/g, ". ").replace(/\s+/g, " ").trim();
+    if (!x || (x.length < 80 && ICON_RX.test(x))) return null;
+    return x;
+  }
   /** Phrases à lire pour un chapitre (même découpage que le lecteur de la page). */
   function speechOf(html, lang) {
     const doc = new DOMParser().parseFromString(`<div>${html || ""}</div>`, "text/html"), out = [];
     const ear = x => forEar(x, lang);
-    doc.querySelectorAll("h3, p, li, pre").forEach(el => {
+    doc.querySelectorAll("h3, p, li, pre, td, th").forEach(el => {
       if (el.tagName === "PRE") { const txt = codeForEar(el.textContent, lang); if (txt) out.push(txt); return; }
       if (el.closest("pre") || (el.tagName === "P" && el.closest("li"))) return;
       let raw = el.textContent || "";
+      if (el.tagName === "TD" || el.tagName === "TH") { raw = cellSay(el); if (!raw) return; }
       if (el.tagName === "LI" && el.querySelector("ul,ol")) {
         const c = el.cloneNode(true); c.querySelectorAll("ul,ol").forEach(x => x.remove());
         const txt = ear(cleanSpeech(c.textContent || "")); if (txt) out.push(txt); return;
@@ -441,7 +453,13 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       if (el.tagName === "TABLE") {
         if (el.parentElement && el.parentElement.closest("table")) return;
         const rows = [...el.rows].map(r => [...r.cells].map(c => ({ x: cellX(c), h: c.tagName === "TH" ? 1 : 0, cs: c.colSpan || 1, rs: c.rowSpan || 1 })));
-        if (rows.length) out.push({ k: "table", rows, x: el.caption ? el.caption.textContent.trim() : "", s: [] });
+        // cases lues ligne par ligne (sauf icônes décoratives)
+        const s = [];
+        for (const r of el.rows) for (const c of r.cells) {
+          const raw = cellSay(c); if (!raw) continue;
+          for (const [a, z] of sentences(raw, lang)) { const txt = cleanSpeech(raw.slice(a, z)); if (txt) s.push(txt); }
+        }
+        if (rows.length) out.push({ k: "table", rows, x: el.caption ? el.caption.textContent.trim() : "", s });
         return;
       }
       if (el.closest("table") || (el.tagName !== "PRE" && el.closest("pre")) || (el.tagName === "P" && el.closest("li"))) return;
@@ -1314,7 +1332,15 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     if (!bar || !tts.can) return;
     const speakLang = lang === "fr" && !tts.canFr ? "en" : lang;
     const segs = [];
-    root.querySelectorAll(".bk-ch-title, .bk-content h3, .bk-content p, .bk-content li, .bk-content pre, .bk-notes h3, .bk-notes p").forEach(el => {
+    root.querySelectorAll(".bk-ch-title, .bk-content h3, .bk-content p, .bk-content li, .bk-content pre, .bk-content td, .bk-content th, .bk-notes h3, .bk-notes p").forEach(el => {
+      if (el.tagName === "TD" || el.tagName === "TH") {
+        // case de tableau : lue comme un paragraphe (une case faite de paragraphes est lue par ceux-ci)
+        const raw = cellSay(el); if (!raw) return;
+        const first = segs.length;
+        for (const [a, z] of sentences(raw, lang)) { const txt = cleanSpeech(raw.slice(a, z)); if (txt) segs.push({ el, txt, a: null }); }
+        if (segs.length > first) { el.dataset.seg = first; el.classList.add("bk-seg"); }
+        return;
+      }
       if (el.tagName === "PRE") {
         const txt = codeForEar(el.textContent, speakLang);
         if (txt) { el.dataset.seg = segs.length; el.classList.add("bk-seg"); segs.push({ el, txt, a: null }); }

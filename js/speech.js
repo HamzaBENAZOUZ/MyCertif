@@ -8,7 +8,7 @@
 //  - abréviations (e.g., i.e., vs., cf., &) en toutes lettres.
 // Utilisé par le lecteur des livres, les boutons « Écouter » du QCM et les livres envoyés dans Android Auto.
 
-export const SPEECH_V = "a3";      // à changer quand les règles changent : les livres déjà dans la voiture sont proposés à la mise à jour
+export const SPEECH_V = "a4";      // à changer quand les règles changent : les livres déjà dans la voiture sont proposés à la mise à jour
 
 const W = {
   fr: { link: "lien vers", or: "ou", and: "et", then: "puis", eq: "égal", ne: "différent de", ge: "supérieur ou égal à", le: "inférieur ou égal à",
