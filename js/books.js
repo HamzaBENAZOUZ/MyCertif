@@ -289,6 +289,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     document.querySelectorAll(".bk-bf-range").forEach(x => { if (+x.value !== v) x.value = v; });
     document.querySelectorAll("[data-bfp]").forEach(x => x.setAttribute("aria-pressed", String(+x.dataset.bfp === v)));
     if (save) savePrefs();
+    if (player && player.playing && player.follow) player.follow();
   }
   document.addEventListener("click", e => {
     const x = e.target.closest("[data-bf], [data-bfp]"); if (!x) return;
@@ -1931,12 +1932,37 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       } catch { /* ancienne appli */ }
     };
     const keep = () => { P.pos[key] = player.i; wrj(PKEY, P); };
+    /** Partie de l'écran où le texte est vraiment visible : sous la barre du haut et le lecteur, au-dessus de la progression et des onglets. */
+    const band = () => {
+      let top = 0, bottom = innerHeight;
+      for (const sel of [".topbar", "#bk-player"]) {
+        const x = document.querySelector(sel); if (!x || x.hidden) continue;
+        const r = x.getBoundingClientRect(); if (r.height && r.bottom > top && r.top < innerHeight / 2) top = r.bottom;
+      }
+      for (const sel of ["#bk-foot", ".main-nav"]) {
+        const x = document.querySelector(sel); if (!x || x.hidden) continue;
+        const r = x.getBoundingClientRect(), cs = getComputedStyle(x);
+        if (r.height && (cs.position === "fixed" || cs.position === "sticky") && r.top < bottom && r.top > innerHeight / 2) bottom = r.top;
+      }
+      return { top: top + 12, bottom: bottom - 12 };
+    };
+    /** Garde la phrase lue entièrement visible : le paragraphe centré s'il tient à l'écran, sinon la phrase elle-même. */
+    const follow = j => {
+      const s = segs[j]; if (!s) return;
+      const b = band(), h = Math.max(60, b.bottom - b.top);
+      let r = s.el.getBoundingClientRect();
+      if (r.height > h * 0.85 && s.a != null) { const rg = textRange(s.el, s.a, s.z); const rr = rg && rg.getBoundingClientRect(); if (rr && rr.height) r = rr; }
+      if (r.top >= b.top && r.bottom <= b.bottom) return;              // déjà entièrement visible
+      const want = r.height < h ? b.top + (h - r.height) * 0.4 : b.top;   // un peu au-dessus du centre
+      scrollBy({ top: r.top - want, behavior: "smooth" });
+    };
+    // taille du texte ou de l'écran changée pendant l'écoute : la phrase lue reste visible
+    addEventListener("resize", () => { if (player && player.playing && bar.isConnected) follow(player.i); }, { passive: true });
     const play = j => {
       if (!player || j < 0 || j >= segs.length) return;
       player.i = j; player.playing = true; keep();
       const my = ++player.token; paint();
-      const el = segs[j].el, rc = el.getBoundingClientRect();
-      if (rc.top < (parseInt(document.documentElement.style.getPropertyValue("--tb-h")) || 60) + 56 || rc.bottom > innerHeight - 40) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      follow(j);
       say(segs[j].txt, player.lang, () => {
         if (!player || my !== player.token) return;
         if (j + 1 < segs.length) {   // petite pause entre deux phrases (réglage « Pause entre les phrases »)
@@ -1974,6 +2000,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       return j;
     };
     const startHere = () => { if (P.pos[key] || !readerTop || scrollY < 40) return; const el = readerTop(), j = el ? segAt(el) : -1; if (j > 0) player.i = j; };
+    player.follow = () => follow(player.i);
     player.at = el => { const j = segAt(el); if (j < 0) return; if (bar.hidden) { bar.hidden = false; document.body.classList.add("bk-playing"); } play(j); };
     const open = () => {
       bar.hidden = false; document.body.classList.add("bk-playing");
