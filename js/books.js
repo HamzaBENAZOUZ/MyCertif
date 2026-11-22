@@ -46,7 +46,7 @@ const L = {
     etaRead: "Temps de lecture estimé", etaListen: "Temps d'écoute estimé (à la vitesse {r}×)",
     min: "min", etaBook: "Tout le livre", etaCh: "Ce chapitre", etaR: "à lire", etaV: "avec la voix", etaWait: "calcul du temps…",
     upNote: "Les images et tableaux complexes ne sont pas repris : seul le texte est gardé.",
-    badType: "Ce fichier n'est ni un PDF ni un EPUB.", badEpub: "Cet EPUB est illisible ou abîmé.",
+    badType: "Ce fichier n'est ni un PDF ni un EPUB.", badEpub: "Cet EPUB est illisible ou abîmé.", badZip: "Impossible d'ouvrir ce fichier EPUB : il semble incomplet ou abîmé. S'il vient d'être téléchargé, attendez la fin du téléchargement puis réessayez.",
     noText: "Aucun texte trouvé : c'est sans doute un PDF scanné (des images de pages), qui ne peut pas être lu à voix haute.",
     front: "Début du document", part: "partie", pages: "Pages", section: "Section",
     imported: "Importé", srcFile: "Fichier d'origine", srcApp: "copie gardée dans l'appli", srcHandle: "lien vers le fichier sur ce PC",
@@ -105,7 +105,7 @@ const L = {
     etaRead: "Estimated reading time", etaListen: "Estimated listening time (at {r}× speed)",
     min: "min", etaBook: "Whole book", etaCh: "This chapter", etaR: "reading", etaV: "with the voice", etaWait: "working out the time…",
     upNote: "Images and complex tables are left out: only the text is kept.",
-    badType: "This file is neither a PDF nor an EPUB.", badEpub: "This EPUB is unreadable or damaged.",
+    badType: "This file is neither a PDF nor an EPUB.", badEpub: "This EPUB is unreadable or damaged.", badZip: "Could not open this EPUB file: it looks incomplete or damaged. If it was just downloaded, wait for the download to finish and try again.",
     noText: "No text found: this is probably a scanned PDF (page images), which cannot be read aloud.",
     front: "Start of the document", part: "part", pages: "Pages", section: "Section",
     imported: "Imported", srcFile: "Original file", srcApp: "copy kept in the app", srcHandle: "link to the file on this PC",
@@ -850,11 +850,21 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     window.scrollTo(0, 0);
     try {
       const mod = await import("./doc-import.js");
-      const res = await mod.parseDocument(picked.file, (i, n, what) => {
+      const step = (i, n, what) => {
         const m = root.querySelector("#bk-up-msg"), bar = root.querySelector("#bk-up-bar");
         if (m) m.textContent = "⏳ " + t(what === "img" ? "upImg" : "upReadE", { i, n });
         if (bar) bar.style.width = Math.round((i / n) * 100) + "%";
-      }, t);
+      };
+      let res;
+      try { res = await mod.parseDocument(picked.file, step, t); }
+      catch (e) {
+        // appli Android : le fichier lu par la page peut arriver incomplet (gros fichier) ; la copie faite par l'appli
+        // (lue entièrement par Android) est essayée avant d'abandonner
+        const copy = picked.copy && await picked.copy().catch(() => null);
+        if (!copy) throw e;
+        console.warn("import : nouvel essai avec la copie de l'appli", e);
+        res = await mod.parseDocument(copy, step, t);
+      }
       const u = replace && upl(replace);
       draft = { res, picked, replace, html: mod.blocksToHtml, mode: res.method, chapters: res.chapters,
         title: replace ? replace.title : res.title, author: replace ? replace.author || "" : res.author || "", lang: u ? u.lang : res.lang };
