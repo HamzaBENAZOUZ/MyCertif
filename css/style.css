@@ -73,7 +73,7 @@ body {
   background-size: auto, 32px 32px, 32px 32px;
   color: var(--text);
   font-family: var(--sans);
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.55;
   min-height: 100vh;
   display: flex;
@@ -412,7 +412,7 @@ h1 { font-family: var(--sans); font-weight: 800; letter-spacing: -.02em; }
   background: var(--panel-solid); color: var(--text); border: 1px solid var(--green); border-radius: var(--radius);
   box-shadow: 0 10px 30px rgba(0,0,0,.35); }
 .upd-banner .upd-txt { flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.upd-banner small { opacity: .75; font-size: 12.5px; }
+.upd-banner small { opacity: .75; font-size: .78rem; }
 .upd-banner .upd-acts { display: flex; gap: 8px; }
 @media (max-width: 560px) { .upd-banner .upd-acts { width: 100%; } .upd-banner .upd-acts > * { flex: 1; justify-content: center; text-align: center; } }
 
@@ -422,8 +422,9 @@ h1 { font-family: var(--sans); font-weight: 800; letter-spacing: -.02em; }
 :root { --radius: 18px; --glass: rgba(22, 24, 30, .62); --glass-line: rgba(255, 255, 255, .07); --shadow: 0 12px 40px rgba(0, 0, 0, .35);
   --safe-b: env(safe-area-inset-bottom, 0px); --safe-t: env(safe-area-inset-top, 0px); }
 :root[data-theme="light"] { --glass: rgba(255, 255, 255, .72); --glass-line: rgba(18, 19, 23, .07); --shadow: 0 10px 30px rgba(18, 19, 23, .08); }
-html { -webkit-text-size-adjust: 100%; scroll-padding-top: 80px; }
-body { font-size: clamp(15px, .3vw + 14px, 16.5px); -webkit-tap-highlight-color: transparent; }
+/* --ui-font : taille du texte choisie dans Paramètres (1 = normale), toutes les tailles sont en rem */
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 80px; font-size: calc(100% * var(--ui-font, 1)); }
+body { font-size: clamp(.9375rem, .3vw + .875rem, 1.03rem); -webkit-tap-highlight-color: transparent; }
 
 /* lueurs d'ambiance (magenta / orange) qui dérivent lentement derrière le contenu */
 body::before, body::after { content: ""; position: fixed; z-index: -3; pointer-events: none; border-radius: 50%; filter: blur(70px); opacity: .55; }
@@ -885,7 +886,7 @@ body.bk-playing .bk-seg { cursor: pointer; }
 .brand-ver[hidden] { display: none; }
 
 /* ---------- Mode télé (Android TV) : télécommande, lecture à 3 m ---------- */
-html.tv { font-size: 118%; }
+html.tv { font-size: calc(118% * var(--ui-font, 1)); }
 html.tv body { padding: 0 2.5vw; }                      /* marge de sécurité des téléviseurs (overscan) */
 html.tv :focus { outline: 3px solid var(--cyan) !important; outline-offset: 3px; box-shadow: 0 0 0 7px color-mix(in srgb, var(--cyan) 28%, transparent) !important; }
 html.tv .opt:focus, html.tv .bk-opt:focus, html.tv .bk-toc-row:focus { transform: scale(1.02); }
@@ -1008,6 +1009,12 @@ body.cast-tv-on { overflow: hidden; }
 .set-sec h3 { margin: 0 0 .4rem; }
 .set-row { display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap; margin: .6rem 0; }
 .set-row select { max-width: 100%; }
+.set-font .seg { flex-wrap: wrap; max-width: 100%; }
+.set-font .seg-btn { flex: 1 1 auto; }
+@media (max-width: 640px) {   /* très grand texte sur téléphone : une carte par ligne */
+  html.fs-big .actions-panel, html.fs-big .stats { grid-template-columns: minmax(0, 1fr); }
+}
+.set-font-prev { margin: .4rem 0 0; padding: .6rem .8rem; border-left: 3px solid var(--cyan); border-radius: 6px; background: color-mix(in srgb, var(--cyan) 6%, transparent); font-size: 1.05rem; }
 .set-check { justify-content: flex-start; flex-wrap: nowrap; }
 .set-voices { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: .8rem; margin: .6rem 0; }
 .set-voice { border: 1px dashed var(--line-2); border-radius: 12px; padding: .7rem .9rem; }

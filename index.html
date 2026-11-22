@@ -19,6 +19,11 @@
       try { th = localStorage.getItem("splunk-theme"); } catch (e) {}
       if (th !== "light" && th !== "dark") th = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
       document.documentElement.dataset.theme = th;
+      // Taille du texte choisie dans Paramètres (toute l'appli, téléphone, tablette et télé).
+      var fs = 1;
+      try { fs = parseFloat(localStorage.getItem("mycertif-font")) || 1; } catch (e) {}
+      if (fs >= 0.85 && fs <= 1.6 && fs !== 1) document.documentElement.style.setProperty("--ui-font", fs);
+      if (fs >= 1.3 && fs <= 1.6) document.documentElement.classList.add("fs-big");
     })();
   </script>
 </head>
