@@ -91,7 +91,7 @@ const L = {
     allBooks: "dans tout le livre", thisCh: "ce chapitre", other: "autre langue / traduction",
     look: "Affichage", theme: "Thème", th_auto: "Appli", th_light: "Clair", th_sepia: "Sépia", th_night: "Nuit",
     face: "Police", f_sans: "Sans", f_serif: "Serif", lh: "Interligne", lh_s: "Serré", lh_m: "Normal", lh_l: "Aéré",
-    mw: "Marges", mw_s: "Étroites", mw_m: "Normales", mw_l: "Larges", justify: "Texte justifié",
+    mw: "Marges", mw_f: "Aucune", mw_s: "Étroites", mw_m: "Normales", mw_l: "Larges", justify: "Texte justifié",
     turn: "Tourner les pages", turn_scroll: "Défilement", turn_pages: "Pages", turnHint: "Mode Pages : touche le bord droit ou gauche, ou glisse le doigt, pour tourner une page (télécommande : flèches gauche / droite ou Chaîne +/−).",
     bfT: "Taille du texte du livre", bfHint: "Seul le texte du livre change : l'appli garde sa taille. Astuce : pince l'écran avec deux doigts pour zoomer le texte.", bfSmall: "Texte plus petit", bfBig: "Texte plus grand",
     resumed: "Repris là où tu t'étais arrêté ({p} %)", toStart: "Revenir au début", nextPage: "Page suivante", prevPage: "Page précédente",
@@ -165,7 +165,7 @@ const L = {
     allBooks: "in the whole book", thisCh: "this chapter", other: "other language / translation",
     look: "Display", theme: "Theme", th_auto: "App", th_light: "Light", th_sepia: "Sepia", th_night: "Night",
     face: "Font", f_sans: "Sans", f_serif: "Serif", lh: "Line spacing", lh_s: "Tight", lh_m: "Normal", lh_l: "Airy",
-    mw: "Margins", mw_s: "Narrow", mw_m: "Normal", mw_l: "Wide", justify: "Justified text",
+    mw: "Margins", mw_f: "None", mw_s: "Narrow", mw_m: "Normal", mw_l: "Wide", justify: "Justified text",
     turn: "Page turning", turn_scroll: "Scroll", turn_pages: "Pages", turnHint: "Pages mode: tap the right or left edge, or swipe, to turn a page (remote: left / right arrows or Channel +/−).",
     bfT: "Book text size", bfHint: "Only the book's text changes: the app keeps its size. Tip: pinch the screen with two fingers to zoom the text.", bfSmall: "Smaller text", bfBig: "Bigger text",
     resumed: "Picked up where you left off ({p}%)", toStart: "Back to the start", nextPage: "Next page", prevPage: "Previous page",
@@ -1260,7 +1260,10 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
 
 
   /* ---------------- liseuse : affichage, position exacte, progression, signets, surlignages, pages ---------------- */
-  const THEMES = ["auto", "light", "sepia", "night"], LHS = { s: 1.5, m: 1.72, l: 2 }, MWS = { s: "920px", m: "760px", l: "620px" };
+  const THEMES = ["auto", "light", "sepia", "night"], LHS = { s: 1.5, m: 1.72, l: 2 }, MWS = { f: "100%", s: "920px", m: "760px", l: "620px" };
+  // tablette (écran tactile) en paysage : le texte prend toute la largeur tant qu'aucune marge n'a été choisie
+  const wideTouch = () => !isTv() && matchMedia("(orientation: landscape) and (pointer: coarse) and (min-width: 800px)").matches;
+  const mwKey = () => prefs.mw || (wideTouch() ? "f" : "m");
   const HLC = ["y", "g", "b", "p"];                       // couleurs de surlignage : jaune, vert, bleu, rose
   const BSEL = "p, li, h1, h2, h3, h4, h5, h6, pre, table, figure, blockquote, img, dt, dd";
   let uxAbort = null, readerTop = null;
@@ -1274,7 +1277,10 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     if (!el) return;
     el.style.setProperty("--bk-font", prefs.font);
     el.style.setProperty("--bk-lh", LHS[prefs.lh] || LHS.m);
-    el.style.setProperty("--bk-mw", MWS[prefs.mw] || MWS.m);
+    const mw = MWS[mwKey()] || MWS.m;
+    el.style.setProperty("--bk-mw", mw);
+    const ft = document.getElementById("bk-foot"); if (ft) ft.style.setProperty("--bk-mw", mw);
+    document.body.classList.toggle("bk-full", mwKey() === "f");
     el.classList.toggle("bk-serif", !!prefs.serif);
     el.classList.toggle("bk-just", !!prefs.justify);
   }
@@ -1380,6 +1386,13 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     };
     addEventListener("scroll", onScroll, { passive: true, ...sig });
     addEventListener("resize", onScroll, { passive: true, ...sig });
+    // rotation de la tablette : largeur du texte recalculée (pleine largeur en paysage), même passage gardé à l'écran
+    let mwNow = mwKey();
+    addEventListener("resize", () => {
+      if (mwKey() === mwNow) return;
+      mwNow = mwKey();
+      const keep = cur(); applyLook(reader); blocks = null; scrollToBlock(keep.i, keep.o); onScroll();
+    }, { passive: true, ...sig });
     ["wheel", "touchstart", "keydown"].forEach(ev => addEventListener(ev, () => { userMoved = true; }, { passive: true, ...sig }));
 
     /* reprise à l'endroit exact */
@@ -1600,7 +1613,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
         ${bfCtl()}
         <div class="bk-look-f"><span class="mono muted">${esc(t("face"))}</span>${segs("serif", [[0, t("f_sans")], [1, t("f_serif")]], prefs.serif ? 1 : 0)}</div>
         <div class="bk-look-f"><span class="mono muted">${esc(t("lh"))}</span>${segs("lh", [["s", t("lh_s")], ["m", t("lh_m")], ["l", t("lh_l")]], prefs.lh || "m")}</div>
-        <div class="bk-look-f"><span class="mono muted">${esc(t("mw"))}</span>${segs("mw", [["s", t("mw_s")], ["m", t("mw_m")], ["l", t("mw_l")]], prefs.mw || "m")}</div>
+        <div class="bk-look-f"><span class="mono muted">${esc(t("mw"))}</span>${segs("mw", [["f", t("mw_f")], ["s", t("mw_s")], ["m", t("mw_m")], ["l", t("mw_l")]], mwKey())}</div>
         <label class="bk-set-chain"><input type="checkbox" id="bk-just" ${prefs.justify ? "checked" : ""}> <span>${esc(t("justify"))}</span></label>
         <div class="bk-look-f"><span class="mono muted">${esc(t("turn"))}</span>${segs("turn", [["scroll", t("turn_scroll")], ["pages", t("turn_pages")]], prefs.turn || "scroll")}
           <p class="muted bk-look-hint">${esc(t("turnHint"))}</p></div>`, t("look"));
@@ -2115,7 +2128,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     if (player) { player.token++; player.playing = false; player = null; tts.stop(); const m = media(); if (m) try { m.end(); } catch { /* */ } }
     screenAwake(false);
     clearHL();
-    document.body.classList.remove("bk-playing", "bk-set-on", "bk-pages", ...THEMES.map(x => "bk-th-" + x));
+    document.body.classList.remove("bk-playing", "bk-set-on", "bk-pages", "bk-full", ...THEMES.map(x => "bk-th-" + x));
     if (uxAbort) { uxAbort.abort(); uxAbort = null; }
     readerTop = null;
     if (canHL()) HLC.forEach(c => CSS.highlights.delete("bk-hl-" + c));

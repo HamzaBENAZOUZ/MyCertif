@@ -1,9 +1,9 @@
 {
-  "versionCode": 43,
-  "versionName": "3.22",
+  "versionCode": 44,
+  "versionName": "3.23",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Écoute des livres : la phrase lue reste entièrement visible, entre le lecteur en haut et la barre de progression en bas, même en grande taille de texte.",
-    "en": "Book listening: the sentence being read stays fully visible, between the player at the top and the progress bar at the bottom, even with large text."
+    "fr": "Livres : sur tablette en paysage, le texte s'étale sur toute la largeur de l'écran. Nouveau choix de marges « Aucune » dans le panneau Aa, valable partout.",
+    "en": "Books: on a tablet in landscape, the text now spans the full width of the screen. New \"None\" margins option in the Aa panel, available everywhere."
   }
 }
