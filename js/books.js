@@ -38,7 +38,7 @@ const L = {
     imp: "Ajouter un livre (.book.json)", impBusy: "Import… {i}/{n} chapitres", impOk: "Livre « {t} » ajouté à ta bibliothèque",
     badFile: "Ce fichier n'est pas un livre préparé pour l'appli (.book.json).",
     up: "Importer un cours (PDF ou EPUB)", upHint: "Le fichier est découpé en chapitres sur cet appareil, puis le texte est enregistré dans ton compte (privé).",
-    upRead: "Lecture du fichier… page {i}/{n}", upReadE: "Lecture du fichier… {i}/{n}", upLoad: "Chargement du lecteur PDF / EPUB…",
+    upRead: "Lecture du fichier… page {i}/{n}", upReadE: "Lecture du fichier… {i}/{n}", upImg: "Images du livre… {i}/{n}", upLoad: "Chargement du lecteur PDF / EPUB…",
     upTitle: "Vérifie le découpage", upName: "Titre", upAuthor: "Auteur", upVoice: "Langue de la voix", upSplit: "Découpage",
     upSave: "Enregistrer dans ma bibliothèque", upCancel: "Annuler", upSaving: "Enregistrement… {i}/{n} chapitres", upOk: "« {t} » est dans ta bibliothèque",
     m_toc: "sommaire du livre", m_files: "un chapitre par fichier du livre (pas de sommaire)", m_outline: "signets du PDF",
@@ -97,7 +97,7 @@ const L = {
     imp: "Add a book (.book.json)", impBusy: "Importing… {i}/{n} chapters", impOk: "“{t}” added to your library",
     badFile: "This file is not a book prepared for the app (.book.json).",
     up: "Import a course (PDF or EPUB)", upHint: "The file is split into chapters on this device, then the text is saved to your (private) account.",
-    upRead: "Reading the file… page {i}/{n}", upReadE: "Reading the file… {i}/{n}", upLoad: "Loading the PDF / EPUB reader…",
+    upRead: "Reading the file… page {i}/{n}", upReadE: "Reading the file… {i}/{n}", upImg: "Book images… {i}/{n}", upLoad: "Loading the PDF / EPUB reader…",
     upTitle: "Check the chapters", upName: "Title", upAuthor: "Author", upVoice: "Voice language", upSplit: "Split by",
     upSave: "Save to my library", upCancel: "Cancel", upSaving: "Saving… {i}/{n} chapters", upOk: "“{t}” is in your library",
     m_toc: "the book's table of contents", m_files: "one chapter per file in the book (no table of contents)", m_outline: "PDF bookmarks",
@@ -333,9 +333,16 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     if (error) throw error;
     const rows = b.chapters.map(c => ({ book_id: b.id, n: c.n, section: c.section || null, section_fr: c.section_fr || null, title: c.title,
       title_fr: c.title_fr || null, html_en: c.html_en, html_fr: c.html_fr || null, quiz: c.quiz || [], notes: c.notes || null }));
-    for (let i = 0; i < rows.length; i += 6) {
-      onStep && onStep(Math.min(i + 6, rows.length), rows.length);
-      const r = await store.sb.from(T_CH).upsert(rows.slice(i, i + 6), { onConflict: "book_id,n" });
+    // par paquets de 6 chapitres au plus et d'environ 3 Mo (les chapitres avec images sont lourds)
+    for (let i = 0; i < rows.length; ) {
+      const part = [];
+      for (let size = 0; i < rows.length && part.length < 6; ) {
+        const z = (rows[i].html_en || "").length + (rows[i].html_fr || "").length;
+        if (part.length && size + z > 3e6) break;
+        part.push(rows[i++]); size += z;
+      }
+      onStep && onStep(i, rows.length);
+      const r = await store.sb.from(T_CH).upsert(part, { onConflict: "book_id,n" });
       if (r.error) throw r.error;
     }
     const keep = new Set(b.chapters.map(c => c.n));
@@ -420,11 +427,25 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   // Dans l'appli Android, un livre peut être lu sur la Google TV associée (voir js/cast.js) : le texte part sous forme
   // de blocs (titre, paragraphe, élément de liste, code) avec les phrases à lire, la télé l'affiche et le lit elle-même.
   /** Blocs d'un chapitre pour la télé : { k: "h3"|"p"|"li"|"pre", x: texte affiché, s: phrases lues }. */
-  function blocksOf(html, lang) {
+  function blocksOf(html, lang, imgs = true) {
     const doc = new DOMParser().parseFromString(`<div>${html || ""}</div>`, "text/html"), out = [];
-    doc.querySelectorAll("h3, p, li, pre").forEach(el => {
+    doc.querySelectorAll("h3, p, li, pre, img, table").forEach(el => {
+      if (el.tagName === "IMG") {
+        // image : affichée sur la télé (pas lue) ; imgs = false : place gardée, l'image suit plus tard
+        const src = el.getAttribute("src") || "";
+        if (!/^data:image\//.test(src) || el.closest("table")) return;
+        const cap = (el.closest("figure")?.querySelector("figcaption")?.textContent || "").replace(/\s+/g, " ").trim();
+        out.push({ k: "img", src: imgs ? src : "", w: +el.getAttribute("width") || 0, h: +el.getAttribute("height") || 0, x: cap, s: [] });
+        return;
+      }
+      if (el.tagName === "TABLE") {
+        if (el.parentElement && el.parentElement.closest("table")) return;
+        const rows = [...el.rows].map(r => [...r.cells].map(c => ({ x: cellX(c), h: c.tagName === "TH" ? 1 : 0, cs: c.colSpan || 1, rs: c.rowSpan || 1 })));
+        if (rows.length) out.push({ k: "table", rows, x: el.caption ? el.caption.textContent.trim() : "", s: [] });
+        return;
+      }
+      if (el.closest("table") || (el.tagName !== "PRE" && el.closest("pre")) || (el.tagName === "P" && el.closest("li"))) return;
       if (el.tagName === "PRE") { const x = el.textContent || "", s = codeForEar(x, lang); out.push({ k: "pre", x, s: s ? [s] : [] }); return; }
-      if (el.closest("pre") || (el.tagName === "P" && el.closest("li"))) return;
       let raw = el.textContent || "";
       if (el.tagName === "LI" && el.querySelector("ul,ol")) {
         const c = el.cloneNode(true); c.querySelectorAll("ul,ol").forEach(x => x.remove()); raw = c.textContent || "";
@@ -435,6 +456,12 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       if (x) out.push({ k: el.tagName.toLowerCase(), x, s });
     });
     return out;
+  }
+  /** Texte d'une case de tableau, retours à la ligne (<br>) gardés. */
+  function cellX(c) {
+    const k = c.cloneNode(true);
+    k.querySelectorAll("br").forEach(br => br.replaceWith("\n"));
+    return k.textContent.split("\n").map(x => x.replace(/\s+/g, " ").trim()).filter(Boolean).join("\n");
   }
   /** Chapitre traduit en français (traductions gardées sur l'appareil) ; wait = false : seulement si déjà traduit. */
   async function trHtml(b, ch, wait) {
@@ -462,30 +489,42 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     return u.lang === "en" && prefs.tr && prefs.tr[b.id] ? "fr" : voiceOf(b);
   }
   /**
+   * Un chapitre pour la télé : { chapter, later } ; later = true si sa traduction (wait = false) ou ses images
+   * (imgs = false) restent à envoyer.
+   */
+  async function tvOne(b, ch, want, wait, imgs) {
+    const u = upl(b);
+    const needTr = want === "fr" && (u ? u.lang === "en" : !ch.html_fr);
+    let lang = u ? u.lang : (want === "fr" && ch.html_fr ? "fr" : "en");
+    let html = u ? ch.html_en : (lang === "fr" ? ch.html_fr : ch.html_en);
+    let title = pick(ch, "title", lang) || `${t("chapter")} ${ch.n}`, later = false;
+    if (needTr && trSupported()) {
+      const tr = await trHtml(b, ch, wait);
+      if (tr) { lang = "fr"; html = tr.html; title = tr.title || title; }
+      else later = true;
+    }
+    if (!imgs && /<img\s/i.test(html || "")) later = true;
+    return { chapter: tvChapterOf(ch.n, title, lang, html, imgs), later };
+  }
+  /**
    * Livre préparé pour la télé. Texte français absent : le téléphone le traduit (même traducteur que le lecteur) ;
    * le chapitre de départ et le suivant tout de suite, les autres après l'envoi (liste `later`, renvoyés un par un).
+   * Les images (lourdes) suivent le même chemin : celles du chapitre de départ et du suivant partent avec le livre.
    */
   async function tvPkg(b, start, onStep, want = tvLang(b), later = []) {
-    const u = upl(b), chapters = [], canTr = trSupported();
+    const chapters = [];
     const si = Math.max(0, b.chapters.findIndex(c => c.n === start));
     for (let i = 0; i < b.chapters.length; i++) {
       onStep && onStep(i + 1, b.chapters.length);
-      const ch = await loadChapter(b, b.chapters[i].n);
-      const needTr = want === "fr" && (u ? u.lang === "en" : !ch.html_fr);
-      let lang = u ? u.lang : (want === "fr" && ch.html_fr ? "fr" : "en");
-      let html = u ? ch.html_en : (lang === "fr" ? ch.html_fr : ch.html_en);
-      let title = pick(ch, "title", lang) || `${t("chapter")} ${ch.n}`;
-      if (needTr && canTr) {
-        const tr = await trHtml(b, ch, i === si || i === si + 1);
-        if (tr) { lang = "fr"; html = tr.html; title = tr.title || title; }
-        else later.push(ch.n);
-      }
-      chapters.push(tvChapterOf(ch.n, title, lang, html));
+      const ch = await loadChapter(b, b.chapters[i].n), now = i === si || i === si + 1;
+      const r = await tvOne(b, ch, want, now, now);
+      if (r.later) later.push(ch.n);
+      chapters.push(r.chapter);
     }
     return { id: b.id, title: pick(b, "title", want), author: b.author || "", ui: uiLang(), rate: prefs.rate, lang: want,
       start, pos: P.pos[b.id + "|" + start] || 0, chapters };
   }
-  const tvChapterOf = (n, title, lang, html) => ({ n, title, lang, blocks: [{ k: "h1", x: title, s: [title] }, ...blocksOf(html, lang)] });
+  const tvChapterOf = (n, title, lang, html, imgs = true) => ({ n, title, lang, blocks: [{ k: "h1", x: title, s: [title] }, ...blocksOf(html, lang, imgs)] });
   /** Chapitres écoutés jusqu'au bout sur la télé : marqués comme lus ici (et synchronisés). */
   function tvDone(id, ns) {
     let k = 0;
@@ -506,17 +545,18 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       sent = await sendBook(pkg, { onDone: tvDone, relang: (lang, n2, f) => toTv(b, n2 ?? n, null, lang, f) });
     } catch (e) { console.error(e); toast(e.message || String(e), "err"); }
     if (btn.isConnected) { btn.disabled = false; btn.innerHTML = old; }
-    // traduction des autres chapitres, dans l'ordre de lecture, envoyés à la télé dès qu'ils sont prêts
+    // traduction et images des autres chapitres, dans l'ordre de lecture, envoyées à la télé dès qu'elles sont prêtes
     if (!sent || !later.length) return;
     const order = [...later.filter(x => x >= n), ...later.filter(x => x < n)];
-    toast(t("tvTrBg"), "info");
+    const lang = pkg.lang;
+    if (lang === "fr" && trSupported() && (!upl(b) || upl(b).lang === "en")) toast(t("tvTrBg"), "info");
     for (const x of order) {
       if (gen !== tvGen) return;                      // un autre livre (ou l'autre langue) a été envoyé entre-temps
       try {
-        const ch = await loadChapter(b, x), tr = await trHtml(b, ch, true);
-        if (!tr || gen !== tvGen) continue;
-        await sendChapter(b.id, tvChapterOf(x, tr.title || pick(ch, "title", "en"), "fr", tr.html));
-      } catch (e) { console.warn("traduction pour la télé", e); }
+        const ch = await loadChapter(b, x), r = await tvOne(b, ch, lang, true, true);
+        if (gen !== tvGen) return;
+        await sendChapter(b.id, r.chapter);
+      } catch (e) { console.warn("chapitre pour la télé", e); }
     }
   }
 
@@ -792,9 +832,9 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     window.scrollTo(0, 0);
     try {
       const mod = await import("./doc-import.js");
-      const res = await mod.parseDocument(picked.file, (i, n) => {
+      const res = await mod.parseDocument(picked.file, (i, n, what) => {
         const m = root.querySelector("#bk-up-msg"), bar = root.querySelector("#bk-up-bar");
-        if (m) m.textContent = "⏳ " + t("upReadE", { i, n });
+        if (m) m.textContent = "⏳ " + t(what === "img" ? "upImg" : "upReadE", { i, n });
         if (bar) bar.style.width = Math.round((i / n) * 100) + "%";
       }, t);
       const u = replace && upl(replace);
@@ -869,6 +909,27 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       }
     };
     window.scrollTo(0, 0);
+  }
+
+  /** Image du livre en grand : ajustée à l'écran, un toucher l'affiche en taille réelle (défilement), ✕ ou Retour ferme. */
+  function zoomImg(src, alt) {
+    const ov = document.createElement("div");
+    ov.className = "bk-zoom";
+    ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true");
+    ov.innerHTML = `<button class="icon-btn bk-zoom-x" aria-label="${esc(t("close"))}" title="${esc(t("close"))}">✕</button><div class="bk-zoom-in"><img alt=""></div>`;
+    const img = ov.querySelector("img"); img.src = src; img.alt = alt || "";
+    // une entrée d'historique : le bouton Retour du téléphone ferme l'image au lieu de quitter le chapitre
+    let pushed = false;
+    try { history.pushState({ bkZoom: 1 }, "", location.href); pushed = true; } catch { /* */ }
+    const gone = () => { ov.remove(); removeEventListener("keydown", key); removeEventListener("popstate", gone); removeEventListener("hashchange", gone); };
+    const close = () => { if (pushed && history.state && history.state.bkZoom) history.back(); else gone(); };
+    const key = e => { if (e.key === "Escape" || e.key === "Backspace") { e.preventDefault(); close(); } };
+    ov.querySelector(".bk-zoom-x").onclick = close;
+    img.onclick = () => ov.classList.toggle("bk-zoom-full");
+    ov.onclick = e => { if (e.target === ov || e.target.classList.contains("bk-zoom-in")) close(); };
+    addEventListener("keydown", key); addEventListener("popstate", gone); addEventListener("hashchange", gone);
+    document.body.appendChild(ov);
+    ov.querySelector(".bk-zoom-x").focus();
   }
 
   /* ---------------- lecture d'un chapitre ---------------- */
@@ -978,6 +1039,9 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       root.querySelector(".bk-reader").style.setProperty("--bk-font", prefs.font);
     });
     const mark = () => { if (!rec(b.id, n).r) { rec(b.id, n).r = Date.now(); saveP(b.id, n); } };
+    root.querySelector(".bk-content").addEventListener("click", e => {
+      const im = e.target.closest("img"); if (im && im.src) zoomImg(im.src, im.alt);
+    });
     if (canCast()) setCastAction({ label: t("tvCh", { n }), run: btn => toTv(b, n, btn) });
     const tvl = root.querySelector("#bk-tvlisten");
     if (tvl) tvl.onclick = () => toTv(b, n, tvl);
@@ -1089,10 +1153,10 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   }
   /** Morceaux à traduire d'un chapitre : bloc entier, ou seulement le texte hors code si le contenu est mélangé. */
   function trJobs(h1, art) {
-    const els = [h1, ...art.querySelectorAll("h3, p, li, td, th, blockquote, dt, dd")].filter(el => el && !el.closest("pre"));
+    const els = [h1, ...art.querySelectorAll("h3, p, li, td, th, blockquote, dt, dd, figcaption, caption")].filter(el => el && !el.closest("pre"));
     const jobs = [];
     for (const el of els) {
-      if (!el.querySelector("code, ul, ol, table, p")) { const src = el.textContent.replace(/\s+/g, " ").trim(); if (src) jobs.push({ src, put: v => { el.textContent = v; } }); continue; }
+      if (!el.querySelector("code, ul, ol, table, p, br, img")) { const src = el.textContent.replace(/\s+/g, " ").trim(); if (src) jobs.push({ src, put: v => { el.textContent = v; } }); continue; }
       for (const tn of [...el.childNodes].filter(x => x.nodeType === 3 || (x.nodeType === 1 && /^(a|strong|em|b|i|span)$/i.test(x.tagName)))) {
         const raw = tn.textContent; if (!raw.trim()) continue;
         jobs.push({ src: raw.replace(/\s+/g, " ").trim(), put: v => { tn.textContent = (/^\s/.test(raw) ? " " : "") + v + (/\s$/.test(raw) ? " " : ""); } });

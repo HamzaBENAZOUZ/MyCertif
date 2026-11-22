@@ -1044,3 +1044,27 @@ body.cast-tv-on { overflow: hidden; }
   .ex-topics li { grid-template-columns: minmax(0, 1fr) 60px 40px; }
   .ex-quick .stat-val { font-size: 1.05rem; }
 }
+
+/* ---------- Books : images et tableaux des livres importés (EPUB) ---------- */
+.bk-content .bk-fig { margin: 1.2em 0; text-align: center; }
+.bk-content .bk-fig img { max-width: 100%; height: auto; border-radius: 8px; background: #fff; cursor: zoom-in;
+  box-shadow: 0 0 0 1px var(--line); }
+.bk-content figcaption, .cast-text figcaption { margin-top: .5em; font-size: .86em; color: var(--muted); line-height: 1.45; }
+.bk-content .bk-table { margin: 0 0 1.1em; overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+.bk-content .bk-table table { margin: 0; border-collapse: collapse; min-width: 60%; }
+.bk-content .bk-table th { background: var(--bg-2); font-weight: 600; }
+.bk-content caption, .cast-text caption { caption-side: top; text-align: left; padding: 0 0 .4em; font-size: .9em; color: var(--muted); }
+.bk-zoom { position: fixed; inset: 0; z-index: 200; background: rgba(0, 0, 0, .92); display: flex; }
+.bk-zoom-in { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; padding: 12px; }
+.bk-zoom img { max-width: 100%; max-height: 100%; object-fit: contain; background: #fff; border-radius: 6px; cursor: zoom-in; }
+.bk-zoom.bk-zoom-full .bk-zoom-in { display: block; }
+.bk-zoom.bk-zoom-full img { max-width: none; max-height: none; cursor: zoom-out; }
+.bk-zoom-x { position: fixed; top: calc(10px + var(--safe-t, 0px)); right: 10px; z-index: 1; background: rgba(0, 0, 0, .6); color: #fff; }
+/* sur la télé (lecture envoyée par le téléphone) */
+.cast-text .cast-fig { margin: 1.4em 0; text-align: center; }
+.cast-text .cast-fig img { max-width: 100%; max-height: 62vh; width: auto; height: auto; object-fit: contain; background: #fff; border-radius: 10px; }
+.cast-fig-wait { padding: 3em 1em; border: 1px dashed var(--line-2); border-radius: 10px; color: var(--muted); }
+.cast-text .cast-table { margin: 0 0 1.2em; overflow-x: auto; }
+.cast-text .cast-table table { border-collapse: collapse; font-size: 1.05rem; line-height: 1.45; margin: 0 auto; }
+.cast-text .cast-table th, .cast-text .cast-table td { border: 1px solid var(--line-2); padding: 8px 12px; text-align: left; vertical-align: top; }
+.cast-text .cast-table th { background: var(--bg-2); }
