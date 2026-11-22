@@ -67,6 +67,8 @@ export function initTV() {
     } else {
       const next = nearest(a, dir, scope);
       if (next) return focusEl(next);
+      // Livre ouvert : gauche / droite sans bouton dans cette direction = page précédente / suivante
+      if (dir[0] && scope === document && window.__bkPage && window.__bkPage(dir[0])) return;
     }
     // Rien dans cette direction : on fait défiler le texte (lecture d'un long chapitre)
     if (dir[1]) scrollBy({ top: dir[1] * innerHeight * 0.6, behavior: "smooth" });
