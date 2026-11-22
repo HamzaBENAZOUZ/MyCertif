@@ -196,7 +196,7 @@ function cellText(el) {
       const tg = c.localName.toLowerCase();
       if (/^(script|style)$/.test(tg)) continue;
       if (tg === "br") { out += "\n"; continue; }
-      if (tg === "img") { const a = norm(c.getAttribute("alt")); if (a) out += " " + a + " "; continue; }
+      if (tg === "img" || tg === "svg") continue;      // l'image elle-même est gardée à part (son texte alternatif n'est pas du contenu)
       const blk = /^(p|div|li|h[1-6]|pre|tr|dd|dt|blockquote)$/.test(tg);
       if (blk) out += "\n";
       if (tg === "li") out += "• ";
