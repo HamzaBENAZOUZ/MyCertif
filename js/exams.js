@@ -1,10 +1,10 @@
 // Onglet « Examens » (route #/exams, #/exams/<section>) : fiche officielle de chaque examen — durée, coût,
 // nombre de questions, score, lieu de passage, langues, validité, rattrapage, inscription.
-// Données statiques vérifiées sur les sites officiels Splunk, Pearson VUE et AWS le 21/11/2026 (voir SOURCES).
+// Données statiques vérifiées sur les sites officiels Splunk, Pearson VUE et AWS le 21/11/2026, EC-Council (CEH) le 22/11/2026 (voir SOURCES).
 
 const CHECKED = "2026-11-21";
 
-/** sec = section de l'appli (guide = SPLK-1001, practice = SPLK-1002, aws = SAA-C03) ; admin n'a pas encore d'onglet. */
+/** sec = section de l'appli (guide = SPLK-1001, practice = SPLK-1002, aws = SAA-C03, ceh = CEH 312-50) ; admin n'a pas encore d'onglet. */
 const EXAMS = [
   {
     id: "guide", code: "SPLK-1001", name: "Splunk Core Certified User", vendor: "splunk",
@@ -158,6 +158,38 @@ const EXAMS = [
       tip: "No SAA-C04 announced. ESL +30: request it before booking, in the AWS Certification account (\"Request Exam Accommodations\").",
     },
   },
+  {
+    id: "ceh", code: "312-50 (CEH v13)", name: "EC-Council Certified Ethical Hacker", vendor: "eccouncil",
+    quick: { min: 240, q: 125, price: "voucher", pass: "60–85 %" },
+    fr: {
+      lead: "125 QCM en 4 heures. Le score de réussite dépend du formulaire d'examen tiré (entre 60 % et 85 %).",
+      rows: [
+        ["Durée", "4 heures"],
+        ["Questions", "125 questions à choix multiples, examen non ouvert (pas de documents)"],
+        ["Score de réussite", "Fixé par formulaire d'examen : entre 60 % et 85 % selon le formulaire"],
+        ["Admissibilité", "Formation officielle EC-Council (frais de dossier inclus), ou au moins 2 ans d'expérience en sécurité de l'information avec un dossier à 100 $ non remboursable (validé sous 5 à 10 jours ouvrés, valable 3 mois)"],
+        ["Coût", "Un voucher d'examen (valable 1 an) ; EC-Council ne publie pas de prix fixe, il dépend du revendeur ou de la formation"],
+        ["Lieu", "ECC Exam Centre, en ligne avec la surveillance à distance d'EC-Council (à réserver au moins 3 jours avant) ; la page officielle cite aussi les centres Pearson VUE"],
+        ["Rattrapage", "1er rattrapage sans délai ; 14 jours avant les 3e, 4e et 5e tentatives ; 5 tentatives maximum sur 12 mois"],
+        ["Renouvellement", "Programme de formation continue (ECE) : 120 crédits sur 3 ans et une cotisation annuelle de 80 $"],
+      ],
+      tip: "Avant de réserver : fais valider ton admissibilité (formation officielle ou dossier d'expérience) puis achète le voucher.",
+    },
+    en: {
+      lead: "125 multiple-choice questions in 4 hours. The pass mark depends on the exam form you get (between 60% and 85%).",
+      rows: [
+        ["Duration", "4 hours"],
+        ["Questions", "125 multiple-choice questions, closed book"],
+        ["Passing score", "Set per exam form: between 60% and 85% depending on the form"],
+        ["Eligibility", "Official EC-Council training (application fee included), or at least 2 years of information security experience with a $100 non-refundable application (processed in 5–10 working days, valid 3 months)"],
+        ["Cost", "An exam voucher (valid 1 year); EC-Council does not publish a fixed price, it depends on the reseller or training"],
+        ["Where", "ECC Exam Centre, online with EC-Council Remote Proctoring (book at least 3 days ahead); the official page also mentions Pearson VUE centers"],
+        ["Retake", "1st retake with no wait; 14 days before the 3rd, 4th and 5th attempts; at most 5 attempts in 12 months"],
+        ["Renewal", "Continuing education scheme (ECE): 120 credits over 3 years and an $80 annual fee"],
+      ],
+      tip: "Before booking: get your eligibility approved (official training or experience application), then buy the voucher.",
+    },
+  },
 ];
 
 const PRACTICAL = {
@@ -220,6 +252,9 @@ const SOURCES = [
   ["AWS SAA-C03 exam guide", "https://docs.aws.amazon.com/pdfs/aws-certification/latest/solutions-architect-associate-03/solutions-architect-associate-03.pdf"],
   ["AWS – before testing", "https://aws.amazon.com/certification/policies/before-testing/"],
   ["AWS – after testing", "https://aws.amazon.com/certification/policies/after-testing/"],
+  ["EC-Council – Certified Ethical Hacker", "https://cert.eccouncil.org/?p=60"],
+  ["EC-Council – exam retake policy", "https://cert.eccouncil.org/exam-retake-policy.html"],
+  ["EC-Council – continuing education fees", "https://cert.eccouncil.org/continuing-education-fees.html"],
 ];
 
 const TX = {

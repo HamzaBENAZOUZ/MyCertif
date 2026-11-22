@@ -1,9 +1,9 @@
 {
-  "versionCode": 44,
-  "versionName": "3.23",
+  "versionCode": 45,
+  "versionName": "3.24",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Livres : sur tablette en paysage, le texte s'étale sur toute la largeur de l'écran. Nouveau choix de marges « Aucune » dans le panneau Aa, valable partout.",
-    "en": "Books: on a tablet in landscape, the text now spans the full width of the screen. New \"None\" margins option in the Aa panel, available everywhere."
+    "fr": "Nouvelle formation CEH (Certified Ethical Hacker) : l'examen blanc du guide de Matt Walker (61 questions) et 177 questions de révision sur les 14 chapitres, en français et en anglais, plus les résumés des chapitres dans Books et la fiche de l'examen 312-50.",
+    "en": "New CEH (Certified Ethical Hacker) course: the practice exam from Matt Walker's study guide (61 questions) and 177 review questions across the 14 chapters, in French and English, plus chapter summaries in Books and the 312-50 exam sheet."
   }
 }

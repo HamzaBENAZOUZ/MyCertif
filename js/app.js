@@ -14,11 +14,11 @@ const IN_APP = !!window.AndroidTTS;
 
 const CFG = window.SPLUNK_CONFIG || {};
 const PASS = CFG.PASS_MARK || 70;
-const DOMAIN_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32];  // 1-8 : SPLK-1001, 11-20 : SPLK-1002, 31-32 : AWS SAA-C03 (parties I et II du livre)
-const dNum = d => (d > 30 ? d - 30 : d > 10 ? d - 10 : d);   // numéro de thème affiché
-/** Secondes par question à l'examen : SPLK = 60 questions en 60 minutes ; AWS SAA-C03 = 65 questions en 130 minutes. */
-const secPerQ = sec => (sec === "aws" ? 120 : 60);
-const SECTIONS = ["guide", "practice", "aws"];
+const DOMAIN_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35];  // 1-8 : SPLK-1001, 11-20 : SPLK-1002, 31-32 : AWS SAA-C03 (parties I et II du livre), 33-35 : CEH (parties I à III)
+const dNum = d => (d > 32 ? d - 32 : d > 30 ? d - 30 : d > 10 ? d - 10 : d);   // numéro de thème affiché
+/** Secondes par question à l'examen : SPLK = 60 questions en 60 minutes ; AWS SAA-C03 = 65 questions en 130 minutes ; CEH = 125 questions en 4 heures. */
+const secPerQ = sec => (sec === "ceh" ? 115 : sec === "aws" ? 120 : 60);
+const SECTIONS = ["guide", "practice", "aws", "ceh"];
 
 const app = document.getElementById("app");
 const state = {
@@ -216,8 +216,9 @@ const chTitle = c => (c ? (getLang() === "fr" && c.title_fr ? c.title_fr : c.tit
 const chById = id => state.chapters.find(c => c.id === id);
 
 // ---- Sections : « guide » = SPLK-1001 (modules Packt 1-9 + questions originales 11-18), « practice » = SPLK-1002 (101-110),
-//      « aws » = AWS Certified Solutions Architect – Associate (200 = test d'évaluation, 201-213 = chapitres 1 à 13)
-const secOf = chId => (chId >= 200 ? "aws" : chId > 100 ? "practice" : "guide");
+//      « aws » = AWS Certified Solutions Architect – Associate (200 = test d'évaluation, 201-213 = chapitres 1 à 13),
+//      « ceh » = EC-Council Certified Ethical Hacker (300 = examen blanc du guide, 301-314 = chapitres 1 à 14)
+const secOf = chId => (chId >= 300 ? "ceh" : chId >= 200 ? "aws" : chId > 100 ? "practice" : "guide");
 const secChapters = () => state.chapters.filter(c => secOf(c.id) === state.section);
 const secQuestions = () => state.questions.filter(q => secOf(q.chapter_id) === state.section);
 const hasSec = k => state.chapters.some(c => secOf(c.id) === k);
@@ -233,6 +234,8 @@ function setArchived(k, on) {
 }
 /** Étiquette courte : MOD_07 (module Packt), PLUS_T3 (questions originales SPLK-1001, thème 3), T03 (SPLK-1002, thème 3). */
 function chLabel(id) {
+  if (id === 300) return "CEH_TEST";
+  if (id > 300) return `CEH_CH${pad(id - 300)}`;
   if (id === 200) return "AWS_TEST";
   if (id > 200) return `AWS_CH${pad(id - 200)}`;
   if (id <= 9) return `MOD_${pad(id)}`;
@@ -832,7 +835,7 @@ function renderHome() {
   const testsBlock = tests.length ? `
     <section class="domain">
       <div class="domain-head"><h2><span class="mono accent">EXAM</span> ${esc(t("home.tests"))}</h2></div>
-      <p class="muted small">${esc(t(sec === "aws" ? "home.testsDescAws" : "home.testsDesc"))}</p>
+      <p class="muted small">${esc(t(sec === "ceh" ? "home.testsDescCeh" : sec === "aws" ? "home.testsDescAws" : "home.testsDesc"))}</p>
       <div class="chapter-grid">${tests.map(card).join("")}</div>
     </section>` : "";
   const secs = visibleSecs();
@@ -842,8 +845,8 @@ function renderHome() {
         <small class="mono">${state.questions.filter(q => secOf(q.chapter_id) === k).length}</small></button>`).join("")}
     </div>` : "";
 
-  const sizes = [20, 40, 60, 65, 100];
-  const defSize = sec === "guide" ? 60 : 65;   // SPLK-1001 : 60 questions ; SPLK-1002 et AWS SAA-C03 : 65 questions
+  const sizes = sec === "ceh" ? [20, 40, 60, 100, 125] : [20, 40, 60, 65, 100];
+  const defSize = sec === "ceh" ? 125 : sec === "guide" ? 60 : 65;   // SPLK-1001 : 60 ; SPLK-1002 et AWS SAA-C03 : 65 ; CEH : 125
   const SEC_PER_Q = secPerQ(sec);
   const heroT = "MES CERTIFICATIONS";
   const kicker = `&gt; mes-certifications:~$ start --exam ${esc(t("sec." + sec)).replace(/ /g, "-")} --lang ${getLang()}`;
@@ -852,7 +855,7 @@ function renderHome() {
     <p class="mono kicker">${kicker}</p>
     <h1 class="glitch" data-text="${heroT}">${heroT}</h1>
     ${tabs}
-    <p class="muted">${esc(sec === "aws" ? t("home.subAws", { n: total, c: SC.length }) : sec === "practice" ? t("home.subPractice", { n: total }) : t("home.sub", { n: total, c: SC.length }))}</p>
+    <p class="muted">${esc(sec === "ceh" ? t("home.subCeh", { n: total, c: SC.length }) : sec === "aws" ? t("home.subAws", { n: total, c: SC.length }) : sec === "practice" ? t("home.subPractice", { n: total }) : t("home.sub", { n: total, c: SC.length }))}</p>
     <div class="stats">
       <div class="stat"><span class="stat-val mono">${seen}<small>/${total}</small></span><span class="stat-lbl">${esc(t("home.seen"))}</span></div>
       <div class="stat"><span class="stat-val mono">${seen ? pct(ok, seen) : 0}<small>%</small></span><span class="stat-lbl">${esc(t("home.rate"))}</span></div>
