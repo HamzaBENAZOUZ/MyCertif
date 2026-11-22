@@ -216,9 +216,9 @@ const DICT = {
     "domain.20": "Utiliser le Common Information Model (CIM)",
     "domain.31": "Partie I – Les services AWS essentiels",
     "domain.32": "Partie II – Concevoir selon les exigences",
-    "domain.41": "Partie I – Fondamentaux, reconnaissance et piratage des systèmes",
-    "domain.42": "Partie II – Web, sans-fil, mobile, cloud et malwares",
-    "domain.43": "Partie III – Cryptographie, ingénierie sociale, IA et test d'intrusion",
+    "domain.33": "Partie I – Fondamentaux, reconnaissance et piratage des systèmes",
+    "domain.34": "Partie II – Web, sans-fil, mobile, cloud et malwares",
+    "domain.35": "Partie III – Cryptographie, ingénierie sociale, IA et test d'intrusion",
   },
   en: {
     "boot.init": "booting terminal",
@@ -436,9 +436,9 @@ const DICT = {
     "domain.20": "Using the Common Information Model (CIM)",
     "domain.31": "Part I – The Core AWS Services",
     "domain.32": "Part II – Architecting for Requirements",
-    "domain.41": "Part I – Foundations, Reconnaissance and System Hacking",
-    "domain.42": "Part II – Web, Wireless, Mobile, Cloud and Malware",
-    "domain.43": "Part III – Cryptography, Social Engineering, AI and the Pen Test",
+    "domain.33": "Part I – Foundations, Reconnaissance and System Hacking",
+    "domain.34": "Part II – Web, Wireless, Mobile, Cloud and Malware",
+    "domain.35": "Part III – Cryptography, Social Engineering, AI and the Pen Test",
   },
 };
 

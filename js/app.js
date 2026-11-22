@@ -14,8 +14,8 @@ const IN_APP = !!window.AndroidTTS;
 
 const CFG = window.SPLUNK_CONFIG || {};
 const PASS = CFG.PASS_MARK || 70;
-const DOMAIN_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 41, 42, 43];  // 1-8 : SPLK-1001, 11-20 : SPLK-1002, 31-32 : AWS SAA-C03 (parties I et II du livre), 41-43 : CEH (parties I à III)
-const dNum = d => (d > 40 ? d - 40 : d > 30 ? d - 30 : d > 10 ? d - 10 : d);   // numéro de thème affiché
+const DOMAIN_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35];  // 1-8 : SPLK-1001, 11-20 : SPLK-1002, 31-32 : AWS SAA-C03 (parties I et II du livre), 33-35 : CEH (parties I à III)
+const dNum = d => (d > 32 ? d - 32 : d > 30 ? d - 30 : d > 10 ? d - 10 : d);   // numéro de thème affiché
 /** Secondes par question à l'examen : SPLK = 60 questions en 60 minutes ; AWS SAA-C03 = 65 questions en 130 minutes ; CEH = 125 questions en 4 heures. */
 const secPerQ = sec => (sec === "ceh" ? 115 : sec === "aws" ? 120 : 60);
 const SECTIONS = ["guide", "practice", "aws", "ceh"];
