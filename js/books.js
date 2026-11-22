@@ -77,6 +77,21 @@ const L = {
     carBusy: "Envoi vers la voiture… {i}/{n}", carOk: "« {t} » est prêt dans Android Auto", carRm: "Retirer de la voiture",
     carRmOk: "Livre retiré d'Android Auto", carErr: "Envoi vers la voiture impossible", carRead: "{n} chapitre(s) écouté(s) en voiture marqué(s) comme lu(s)",
     tvListen: "Écouter sur {n}", phoneListen: "Sur le téléphone", tvBook: "Lire « {t} » sur la télé", tvCh: "Lire sur la télé à partir du chapitre {n}", tvBusy: "Préparation pour la télé… {i}/{n}", tvTrBg: "La télé lit déjà ; les chapitres suivants sont traduits en français sur le téléphone et lui sont envoyés au fur et à mesure.", tvRead: "{n} chapitre(s) écouté(s) sur la télé marqué(s) comme lu(s)",
+    // 3.20 : bibliothèque et lecture façon liseuse
+    resumeK: "Reprendre la lecture", resumeB: "Reprendre", lastRead: "Lu {w}", justNow: "à l'instant", agoM: "il y a {n} min", agoH: "il y a {n} h", agoD: "il y a {n} j",
+    pctBook: "{p} % du livre", pctCh: "{p} % du chapitre", leftCh: "{m} min restantes dans le chapitre", leftChS: "{m} min restantes", chEnd: "Fin du chapitre",
+    sort: "Trier", s_recent: "Récents", s_title: "Titre", s_author: "Auteur", s_prog: "Progression",
+    f_all: "Tous", f_cur: "En cours", f_new: "À commencer", f_done: "Terminés", f_arch: "Archivés", search: "Rechercher un livre",
+    noMatch: "Aucun livre ne correspond.", arch: "Archiver", unarch: "Désarchiver", archOk: "« {t} » archivé : il reste dans « Archivés », avec ta progression.", unarchOk: "« {t} » est de retour dans la bibliothèque",
+    drawer: "Sommaire, signets et surlignages", tabToc: "Sommaire", tabBm: "Signets", tabHl: "Surlignages",
+    bm: "Signet", bmAdd: "Ajouter un signet ici", bmDel: "Retirer le signet", bmOk: "Signet ajouté", bmRm: "Signet retiré", bmNone: "Aucun signet. Touche 🔖 pendant la lecture pour marquer un passage.",
+    hlNone: "Aucun surlignage. Sélectionne un passage du texte puis choisis une couleur.", hl: "Surligner", hlDel: "Retirer", hlOk: "Passage surligné", copy: "Copier", copied: "Copié", listenHere: "Écouter d'ici",
+    allBooks: "dans tout le livre", thisCh: "ce chapitre", other: "autre langue / traduction",
+    look: "Affichage", theme: "Thème", th_auto: "Appli", th_light: "Clair", th_sepia: "Sépia", th_night: "Nuit",
+    face: "Police", f_sans: "Sans", f_serif: "Serif", lh: "Interligne", lh_s: "Serré", lh_m: "Normal", lh_l: "Aéré",
+    mw: "Marges", mw_s: "Étroites", mw_m: "Normales", mw_l: "Larges", justify: "Texte justifié",
+    turn: "Tourner les pages", turn_scroll: "Défilement", turn_pages: "Pages", turnHint: "Mode Pages : touche le bord droit ou gauche, ou glisse le doigt, pour tourner une page (télécommande : flèches gauche / droite ou Chaîne +/−).",
+    resumed: "Repris là où tu t'étais arrêté ({p} %)", toStart: "Revenir au début", nextPage: "Page suivante", prevPage: "Page précédente",
   },
   en: {
     lib: "Library", libSub: "Your books: read, listen and take a quiz at the end of every chapter.",
@@ -136,6 +151,20 @@ const L = {
     carBusy: "Sending to the car… {i}/{n}", carOk: "“{t}” is ready in Android Auto", carRm: "Remove from the car",
     carRmOk: "Book removed from Android Auto", carErr: "Could not send to the car", carRead: "{n} chapter(s) listened to in the car marked as read",
     tvListen: "Listen on {n}", phoneListen: "On the phone", tvBook: "Play “{t}” on the TV", tvCh: "Play on the TV from chapter {n}", tvBusy: "Preparing for the TV… {i}/{n}", tvTrBg: "The TV is already reading; the next chapters are translated into French on the phone and sent to it as they are ready.", tvRead: "{n} chapter(s) listened to on the TV marked as read",
+    resumeK: "Continue reading", resumeB: "Continue", lastRead: "Read {w}", justNow: "just now", agoM: "{n} min ago", agoH: "{n} h ago", agoD: "{n} d ago",
+    pctBook: "{p}% of the book", pctCh: "{p}% of the chapter", leftCh: "{m} min left in chapter", leftChS: "{m} min left", chEnd: "End of chapter",
+    sort: "Sort", s_recent: "Recent", s_title: "Title", s_author: "Author", s_prog: "Progress",
+    f_all: "All", f_cur: "Reading", f_new: "Not started", f_done: "Finished", f_arch: "Archived", search: "Search a book",
+    noMatch: "No book matches.", arch: "Archive", unarch: "Unarchive", archOk: "“{t}” archived: it stays under “Archived”, with your progress.", unarchOk: "“{t}” is back in the library",
+    drawer: "Contents, bookmarks and highlights", tabToc: "Contents", tabBm: "Bookmarks", tabHl: "Highlights",
+    bm: "Bookmark", bmAdd: "Bookmark this spot", bmDel: "Remove bookmark", bmOk: "Bookmark added", bmRm: "Bookmark removed", bmNone: "No bookmarks. Tap 🔖 while reading to mark a passage.",
+    hlNone: "No highlights. Select a passage of the text, then pick a colour.", hl: "Highlight", hlDel: "Remove", hlOk: "Passage highlighted", copy: "Copy", copied: "Copied", listenHere: "Listen from here",
+    allBooks: "in the whole book", thisCh: "this chapter", other: "other language / translation",
+    look: "Display", theme: "Theme", th_auto: "App", th_light: "Light", th_sepia: "Sepia", th_night: "Night",
+    face: "Font", f_sans: "Sans", f_serif: "Serif", lh: "Line spacing", lh_s: "Tight", lh_m: "Normal", lh_l: "Airy",
+    mw: "Margins", mw_s: "Narrow", mw_m: "Normal", mw_l: "Wide", justify: "Justified text",
+    turn: "Page turning", turn_scroll: "Scroll", turn_pages: "Pages", turnHint: "Pages mode: tap the right or left edge, or swipe, to turn a page (remote: left / right arrows or Channel +/−).",
+    resumed: "Picked up where you left off ({p}%)", toStart: "Back to the start", nextPage: "Next page", prevPage: "Previous page",
   },
 };
 
@@ -204,6 +233,33 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   // Livre importé depuis un PDF / EPUB : source « upload:pdf:fr » (type de fichier, langue du texte)
   const upl = b => { const m = /^upload:(\w+):(\w+)/.exec((b && b.source) || ""); return m ? { kind: m[1], lang: m[2] } : null; };
   const voiceOf = b => (prefs.voice && prefs.voice[b.id]) || upl(b).lang;
+
+  /* ---------------- lecture façon liseuse : dernier livre, position exacte, signets, surlignages ---------------- */
+  // Gardé sur l'appareil, par compte (n'est pas effacé à la déconnexion) :
+  //  open[id] = date de la dernière ouverture ; spot["id|n"] = { i: bloc en haut de l'écran, o: décalage dans ce bloc, f: part lue du chapitre } ;
+  //  bm[id] = [{ n, i, o, x: extrait, at }] ; hl[id] = [{ n, v: variante du texte, i, a, j, z, c: couleur, x: texte, at }] ; arch[id] = 1.
+  const RKEY = () => "mycertif-books-reading:" + (userId() || "local");
+  let R = null, rUid = null;
+  const rd = () => {
+    const k = RKEY();
+    if (!R || rUid !== k) { R = rdj(k) || {}; rUid = k; R.open ||= {}; R.spot ||= {}; R.bm ||= {}; R.hl ||= {}; R.arch ||= {}; }
+    return R;
+  };
+  let rTimer = null;
+  const rSave = (now = false) => { clearTimeout(rTimer); if (now) wrj(RKEY(), rd()); else rTimer = setTimeout(() => wrj(RKEY(), rd()), 400); };
+  addEventListener("pagehide", () => { if (R) wrj(RKEY(), R); });
+  /** Part lue du livre (0 à 1) : chapitres lus + avancée dans le chapitre en cours. */
+  const bookPct = b => {
+    const pr = P.books[b.id] || {}, r = rd(); if (!b.chapters.length) return 0;
+    let done = 0;
+    for (const c of b.chapters) { if (pr[c.n] && pr[c.n].r) done++; else { const s = r.spot[b.id + "|" + c.n]; if (s && s.f) done += Math.min(0.99, s.f); } }
+    return Math.min(1, done / b.chapters.length);
+  };
+  const ago = ts => {
+    const m = Math.round((Date.now() - ts) / 60000);
+    return m < 1 ? t("justNow") : m < 60 ? t("agoM", { n: m }) : m < 1440 ? t("agoH", { n: Math.round(m / 60) }) : t("agoD", { n: Math.round(m / 1440) });
+  };
+  const pctTxt = x => Math.round(x * 100);
 
   /* ---------------- données ---------------- */
   async function fetchLocal() {
@@ -675,22 +731,42 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     : `<div class="${cls} bk-cover-ph mono" aria-hidden="true">${esc((b.title || "?").slice(0, 1))}</div>`;
 
   function renderLib() {
-    const books = lib || [];
+    const books = lib || [], r = rd(), ul = uiLang();
+    const href = b => `#/books/${encodeURIComponent(b.id)}`;
+    const state = b => { const s = stats(b); return r.arch[b.id] ? "arch" : s.total && s.read === s.total ? "done" : (r.open[b.id] || bookPct(b) > 0) ? "cur" : "new"; };
+    // Livre ouvert en dernier (hors archivés) : carte « Reprendre la lecture » en haut
+    const last = books.filter(b => r.open[b.id] && !r.arch[b.id]).sort((x, y) => r.open[y.id] - r.open[x.id])[0];
+    const hero = (() => {
+      if (!last) return "";
+      const n = nextChapter(last), c = last.chapters.find(x => x.n === n) || {}, sp = r.spot[last.id + "|" + n] || {}, w = wcGet(last, n);
+      const pb = bookPct(last), left = w ? mins((w * (1 - (sp.f || 0))) / WPM_READ) : null;
+      return `<section class="panel bk-now" aria-label="${esc(t("resumeK"))}">
+        <a class="bk-card-link" href="${href(last)}/${n}" tabindex="-1">${coverImg(last, "bk-cover bk-cover-now")}</a>
+        <div class="bk-now-body">
+          <p class="kicker mono">▶ ${esc(t("resumeK"))} · ${esc(t("lastRead", { w: ago(r.open[last.id]) }))}</p>
+          <h2><a href="${href(last)}">${esc(pick(last, "title", ul))}</a></h2>
+          ${last.author ? `<p class="muted bk-author">${esc(t("by"))} ${esc(last.author)}</p>` : ""}
+          <p class="bk-now-ch">${esc(t("chapter"))} ${n}/${last.chapters.length}${pick(c, "title", ul) ? ` · ${esc(pick(c, "title", ul))}` : ""}</p>
+          <div class="bk-now-prog"><div class="bar"><span style="width:${pctTxt(pb)}%"></span></div><span class="mono">${esc(t("pctBook", { p: pctTxt(pb) }))}</span></div>
+          <p class="muted mono bk-now-left">${sp.f ? esc(t("pctCh", { p: pctTxt(sp.f) })) + " · " : ""}${left ? esc(t("leftCh", { m: left })) : ""}</p>
+          <div class="row bk-now-acts"><a class="btn btn-primary" id="bk-now-go" href="${href(last)}/${n}">▶ ${esc(t("resumeB"))}</a>
+            <a class="btn btn-ghost btn-sm" href="${href(last)}">☰ ${esc(t("toc"))}</a></div>
+        </div></section>`;
+    })();
+    const counts = { all: 0, cur: 0, new: 0, done: 0, arch: 0 };
+    books.forEach(b => { const st = state(b); counts[st]++; if (st !== "arch") counts.all++; });
+    if (prefs.filter === "arch" && !counts.arch) prefs.filter = "all";
+    const tools = books.length > 1 ? `<div class="bk-libbar">
+        <div class="seg bk-filt" role="group" aria-label="${esc(t("f_all"))}">${["all", "cur", "new", "done", "arch"].filter(k => k === "all" || counts[k]).map(k =>
+          `<button class="seg-btn mono" data-filt="${k}" aria-pressed="${(prefs.filter || "all") === k}">${esc(t("f_" + k))} <small>${counts[k]}</small></button>`).join("")}</div>
+        <label class="bk-sort mono"><span class="muted">${esc(t("sort"))}</span><select id="bk-sort">${["recent", "title", "author", "prog"].map(k =>
+          `<option value="${k}" ${(prefs.sort || "recent") === k ? "selected" : ""}>${esc(t("s_" + k))}</option>`).join("")}</select></label>
+        ${books.length >= 6 ? `<input type="search" id="bk-q" class="bk-q" placeholder="🔍 ${esc(t("search"))}" aria-label="${esc(t("search"))}">` : ""}
+      </div>` : "";
     root.innerHTML = `<div class="bk-lib">
       <header class="bk-head"><div><p class="kicker mono">// books</p><h1>${esc(t("lib"))}</h1><p class="muted bk-sub">${esc(t("libSub"))}</p></div></header>
-      ${books.length ? `<div class="bk-grid">${books.map(b => {
-        const s = stats(b), n = nextChapter(b), p = s.total ? s.read / s.total : 0;
-        return `<article class="panel bk-card">
-          <a class="bk-card-link" href="#/books/${encodeURIComponent(b.id)}">${coverImg(b)}</a>
-          <div class="bk-card-body">
-            <h2><a href="#/books/${encodeURIComponent(b.id)}">${esc(pick(b, "title", uiLang()))}</a></h2>
-            ${b.author ? `<p class="muted bk-author">${esc(t("by"))} ${esc(b.author)}</p>` : ""}
-            ${upl(b) ? `<p class="bk-badge mono">${esc(upl(b).kind.toUpperCase())} · ${esc(t("imported"))}</p>` : ""}
-            <div class="bar bk-bar"><span style="width:${Math.round(p * 100)}%"></span></div>
-            <p class="muted mono bk-meta">${s.read}/${s.total} ${esc(t("chapters"))} ${esc(t("read"))}${s.avg != null ? ` · ${s.avg} % ${esc(t("quizAvg"))}` : ""}</p>
-            <div class="bk-go">${etaSpan(b, n)}<a class="btn btn-primary btn-sm" href="#/books/${encodeURIComponent(b.id)}/${n}">${esc(s.read || P.last[b.id] ? t("cont") : t("start"))} · ${esc(t("chapter"))} ${n}</a></div>
-          </div></article>`;
-      }).join("")}</div>` : `<section class="panel"><p class="muted">${esc(t("empty"))}</p></section>`}
+      ${hero}
+      ${books.length ? `${tools}<div class="bk-grid" id="bk-grid"></div>` : `<section class="panel"><p class="muted">${esc(t("empty"))}</p></section>`}
       ${store.kind === "supabase" && !store.offline ? `<section class="panel bk-up-cta">
         <div><h2>📄 ${esc(t("up"))}</h2><p class="muted">${esc(t("upHint"))}</p></div>
         <button class="btn btn-primary" id="bk-up">${esc(t("up"))}</button>
@@ -698,7 +774,56 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       ${store.kind === "supabase" && !store.offline ? `<p class="bk-imp"><label class="btn btn-ghost btn-sm">📚 ${esc(t("imp"))}
         <input type="file" id="bk-imp" accept=".json,application/json" hidden></label></p>` : ""}
     </div>`;
-    fillEta(root);
+    const grid = root.querySelector("#bk-grid");
+    const card = b => {
+      const s = stats(b), n = nextChapter(b), p = bookPct(b), arch = !!r.arch[b.id];
+      return `<article class="panel bk-card${arch ? " bk-arch" : ""}">
+          <a class="bk-card-link" href="${href(b)}" tabindex="-1">${coverImg(b)}</a>
+          <div class="bk-card-body">
+            <h2><a href="${href(b)}">${esc(pick(b, "title", ul))}</a></h2>
+            ${b.author ? `<p class="muted bk-author">${esc(t("by"))} ${esc(b.author)}</p>` : ""}
+            ${upl(b) ? `<p class="bk-badge mono">${esc(upl(b).kind.toUpperCase())} · ${esc(t("imported"))}</p>` : ""}
+            <div class="bk-pbar"><div class="bar bk-bar"><span style="width:${pctTxt(p)}%"></span></div><span class="mono">${pctTxt(p)} %</span></div>
+            <p class="muted mono bk-meta">${s.read}/${s.total} ${esc(t("chapters"))} ${esc(t("read"))}${s.avg != null ? ` · ${s.avg} % ${esc(t("quizAvg"))}` : ""}${r.open[b.id] ? ` · ${esc(t("lastRead", { w: ago(r.open[b.id]) }))}` : ""}</p>
+            <div class="bk-go">${etaSpan(b, n)}<a class="btn btn-primary btn-sm" href="${href(b)}/${n}">${esc(s.read || P.last[b.id] ? t("cont") : t("start"))} · ${esc(t("chapter"))} ${n}</a>
+              <button class="btn btn-ghost btn-xs bk-archb" data-arch="${esc(b.id)}" title="${esc(arch ? t("unarch") : t("arch"))}">${arch ? "↩ " + esc(t("unarch")) : "📦 " + esc(t("arch"))}</button></div>
+          </div></article>`;
+    };
+    const fill = () => {
+      if (!grid) return;
+      const f = prefs.filter || "all", q = (root.querySelector("#bk-q") || {}).value || "";
+      const norm = x => String(x || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+      const nq = norm(q.trim());
+      let list = books.filter(b => { const st = state(b); return f === "all" ? st !== "arch" : st === f; })
+        .filter(b => !nq || norm(pick(b, "title", ul) + " " + (b.title || "") + " " + (b.author || "")).includes(nq));
+      const by = prefs.sort || "recent", cmp = (x, y) => String(x).localeCompare(String(y), ul, { sensitivity: "base" });
+      list = list.slice().sort(by === "title" ? (x, y) => cmp(pick(x, "title", ul), pick(y, "title", ul))
+        : by === "author" ? (x, y) => cmp(x.author || "~", y.author || "~") || cmp(pick(x, "title", ul), pick(y, "title", ul))
+        : by === "prog" ? (x, y) => bookPct(y) - bookPct(x)
+        : (x, y) => (r.open[y.id] || 0) - (r.open[x.id] || 0) || (x.position ?? 0) - (y.position ?? 0));
+      grid.innerHTML = list.length ? list.map(card).join("") : `<p class="muted bk-nomatch">${esc(t("noMatch"))}</p>`;
+      fillEta(grid);
+    };
+    fill();
+    root.querySelectorAll("[data-filt]").forEach(x => x.onclick = () => {
+      prefs.filter = x.dataset.filt; savePrefs();
+      root.querySelectorAll("[data-filt]").forEach(y => y.setAttribute("aria-pressed", String(y === x))); fill();
+    });
+    const so = root.querySelector("#bk-sort");
+    if (so) so.onchange = () => { prefs.sort = so.value; savePrefs(); fill(); };
+    const qi = root.querySelector("#bk-q");
+    if (qi) qi.oninput = fill;
+    if (grid) grid.onclick = e => {
+      const a = e.target.closest("[data-arch]"); if (!a) return;
+      const b = book(a.dataset.arch); if (!b) return;
+      const on = !r.arch[b.id];
+      if (on) r.arch[b.id] = 1; else delete r.arch[b.id];
+      rSave(true); toast(t(on ? "archOk" : "unarchOk", { t: pick(b, "title", ul) }), "ok"); renderLib();
+    };
+    // télé : la carte « Reprendre » a le focus d'emblée (OK = reprendre la lecture)
+    const go = root.querySelector("#bk-now-go");
+    if (go && document.documentElement.classList.contains("tv")) setTimeout(() => go.isConnected && go.focus({ preventScroll: true }), 50);
+    window.scrollTo(0, 0);
     const upBtn = root.querySelector("#bk-up");
     if (upBtn) upBtn.onclick = () => startUpload(root.querySelector("#bk-up-inp")).catch(e => { console.error(e); toast(e.message || String(e), "err"); });
     const inp = root.querySelector("#bk-imp");
@@ -731,11 +856,11 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
           <h1>${esc(pick(b, "title", ul))}</h1>
           ${pick(b, "subtitle", ul) ? `<p class="muted bk-sub">${esc(pick(b, "subtitle", ul))}</p>` : ""}
           ${b.author ? `<p class="muted bk-author">${esc(t("by"))} ${esc(b.author)}</p>` : ""}
-          <div class="bk-hero-stats">${ring(s.total ? s.read / s.total : 0, Math.round(s.total ? (s.read / s.total) * 100 : 0) + "%")}
+          <div class="bk-hero-stats">${ring(bookPct(b), pctTxt(bookPct(b)) + "%")}
             <div class="mono"><strong>${s.read}/${s.total}</strong> ${esc(t("chapters"))} ${esc(t("read"))}${s.avg != null ? `<br><strong>${s.avg} %</strong> ${esc(t("quizAvg"))}` : ""}</div></div>
           <p class="bk-total mono" id="bk-total">${esc(t("etaWait"))}</p>
           <div class="row bk-hero-acts">
-            <a class="btn btn-primary" href="#/books/${encodeURIComponent(b.id)}/${n}">${esc(s.read || P.last[b.id] ? t("cont") : t("start"))} · ${esc(t("chapter"))} ${n}</a>
+            <a class="btn btn-primary" id="bk-go" href="#/books/${encodeURIComponent(b.id)}/${n}">${esc(s.read || P.last[b.id] ? "▶ " + t("resumeB") : t("start"))} · ${esc(t("chapter"))} ${n}${(rd().spot[b.id + "|" + n] || {}).f > 0.02 ? ` (${pctTxt(rd().spot[b.id + "|" + n].f)} %)` : ""}</a>
             ${store.kind === "supabase" ? (downloaded(b)
               ? `<span class="bk-dl-ok mono">✓ ${esc(t("dlDone"))}</span>`
               : `<button class="btn btn-ghost btn-sm" id="bk-dl" ${canDl ? "" : "disabled"}>📥 ${esc(t("dl"))}</button>`) : ""}
@@ -759,7 +884,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
           const r = pr[c.n] || {};
           return `<li><a href="#/books/${encodeURIComponent(b.id)}/${c.n}" class="bk-toc-row${r.r ? " done" : ""}${c.n === n ? " cur" : ""}">
             <span class="bk-num mono">${c.n}</span><span class="bk-toc-t">${esc(pick(c, "title", ul))}</span>
-            <span class="bk-toc-s mono">${wcGet(b, c.n) ? `<span class="bk-toc-eta muted" title="${esc(t("etaRead"))}">${mins(wcGet(b, c.n) / WPM_READ)} ${esc(t("min"))}</span>` : ""}${r.b != null ? `<span class="bk-score${r.b === r.t ? " full" : ""}">${r.b}/${r.t}</span>` : ""}${r.r ? `<span class="bk-check" title="${esc(t("isRead"))}">✓</span>` : ""}</span>
+            <span class="bk-toc-s mono">${wcGet(b, c.n) ? `<span class="bk-toc-eta muted" title="${esc(t("etaRead"))}">${mins(wcGet(b, c.n) / WPM_READ)} ${esc(t("min"))}</span>` : ""}${r.b != null ? `<span class="bk-score${r.b === r.t ? " full" : ""}">${r.b}/${r.t}</span>` : ""}${r.r ? `<span class="bk-check" title="${esc(t("isRead"))}">✓</span>` : (rd().spot[b.id + "|" + c.n] || {}).f > 0.02 ? `<span class="bk-toc-pct">${pctTxt(rd().spot[b.id + "|" + c.n].f)} %</span>` : ""}</span>
           </a></li>`;
         }).join("")}</ol></section>`).join("")}
     </div>`;
@@ -971,18 +1096,24 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     const lang = trOn ? "fr" : u ? voiceOf(b) : (cLang() === "fr" && !ch.html_fr ? "en" : cLang());
     const prev = b.chapters[i - 1], next = b.chapters[i + 1];
     P.last[b.id] = n; wrj(PKEY, P);
+    rd().open[b.id] = Date.now(); rSave(true);
     const r = rec(b.id, n), html = (!u && lang === "fr" && ch.html_fr) || ch.html_en || "";
     const notes = ch.notes && (ch.notes[lang] || ch.notes.en);
     const base = `#/books/${encodeURIComponent(b.id)}`;
     const pos = P.pos[b.id + "|" + n] || 0;
     const tvNow = canCast() ? pairedTv() : null;     // télé associée : « Écouter » part sur la télé, le téléphone reste possible
-    root.innerHTML = `<div class="bk-reader" style="--bk-font:${prefs.font}">
+    root.innerHTML = `<div class="bk-reader">
       <p class="bk-crumbs mono"><a class="btn btn-ghost btn-sm bk-back" href="#/books">📚 ${esc(t("backLib"))}</a> <span><a href="${base}">${esc(pick(b, "title", uiLang()))}</a></span></p>
       <header class="bk-ch-head">
         <p class="kicker mono">${esc(pick(ch, "section", lang))}${pick(ch, "section", lang) ? " · " : ""}${esc(t("chapter"))} ${n}/${b.chapters.length}</p>
         <h1 class="bk-ch-title" lang="${lang}">${esc(pick(ch, "title", trOn ? "en" : lang))}</h1>
         <p class="bk-ch-eta mono">${etaLine(chWords(b, ch), t("etaCh"))}</p>
         <div class="bk-tools">
+          <div class="seg bk-rd-btns" role="group">
+            <button class="seg-btn mono" id="bk-drawer" title="${esc(t("drawer"))}" aria-label="${esc(t("drawer"))}">☰ ${esc(t("toc"))}</button>
+            <button class="seg-btn mono" id="bk-bm" aria-pressed="false" title="${esc(t("bmAdd"))}" aria-label="${esc(t("bmAdd"))}">🔖</button>
+            <button class="seg-btn mono" id="bk-look" title="${esc(t("look"))}" aria-label="${esc(t("look"))}">Aa</button>
+          </div>
           ${u ? `${trOn ? "" : `<div class="seg" role="group" aria-label="${esc(t("upVoice"))}" title="${esc(t("upVoice"))}">
             <span class="seg-lab mono muted">${esc(t("voice"))}</span>
             <button class="seg-btn mono" data-voice="fr" aria-pressed="${lang === "fr"}">FR</button>
@@ -1020,6 +1151,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
         </nav>
       </footer>
     </div>
+    <div class="bk-foot" id="bk-foot" aria-hidden="true"><div class="bk-foot-bar"><span></span></div><p class="mono" id="bk-foot-t"></p></div>
     <section class="bk-set panel" id="bk-set" hidden role="dialog" aria-label="${esc(t("settings"))}">
       <div class="bk-set-head"><h3 class="mono">⚙ ${esc(t("settings"))}</h3>
         <button class="icon-btn" data-set="close" title="${esc(t("close"))}" aria-label="${esc(t("close"))}">✕</button></div>
@@ -1063,8 +1195,10 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       (prefs.voice ||= {})[b.id] = btn.dataset.voice; savePrefs(); renderChapter(b, ch);
     });
     root.querySelectorAll("[data-font]").forEach(btn => btn.onclick = () => {
+      const keep = readerTop && readerTop(), y0 = keep ? keep.getBoundingClientRect().top : 0;
       prefs.font = Math.min(1.5, Math.max(0.85, Math.round((prefs.font + 0.1 * +btn.dataset.font) * 100) / 100)); savePrefs();
       root.querySelector(".bk-reader").style.setProperty("--bk-font", prefs.font);
+      if (keep) scrollBy(0, keep.getBoundingClientRect().top - y0);        // le passage lu reste en place
     });
     const mark = () => { if (!rec(b.id, n).r) { rec(b.id, n).r = Date.now(); saveP(b.id, n); } };
     root.querySelector(".bk-content").addEventListener("click", e => {
@@ -1081,13 +1215,383 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       const io = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting) && root.querySelector(".bk-reader")) { mark(); io.disconnect(); } }, { threshold: 0.6 });
       setTimeout(() => io.observe(end), 1500);
     }
-    window.scrollTo(0, 0);
+    const ux = readerUx(b, ch, trOn ? "tr" : lang);
     if (!trOn) return setupPlayer(b, ch, lang, mark);
     translateChapter(b, ch).then(ok => {
       const h = root.querySelector(".bk-reader .bk-ch-title");
       if (!h || h.dataset.ch !== String(n)) return;
+      ux.afterText(ok ? "tr" : "en");
       setupPlayer(b, ch, ok ? "fr" : "en", mark);
     });
+  }
+
+
+  /* ---------------- liseuse : affichage, position exacte, progression, signets, surlignages, pages ---------------- */
+  const THEMES = ["auto", "light", "sepia", "night"], LHS = { s: 1.5, m: 1.72, l: 2 }, MWS = { s: "920px", m: "760px", l: "620px" };
+  const HLC = ["y", "g", "b", "p"];                       // couleurs de surlignage : jaune, vert, bleu, rose
+  const BSEL = "p, li, h1, h2, h3, h4, h5, h6, pre, table, figure, blockquote, img, dt, dd";
+  let uxAbort = null, readerTop = null;
+  const isTv = () => document.documentElement.classList.contains("tv");
+  /** Applique les réglages d'affichage du lecteur (thème sur toute la page, police, interligne, marges). */
+  function applyLook(el) {
+    const bd = document.body;
+    THEMES.forEach(x => bd.classList.remove("bk-th-" + x));
+    if (prefs.theme && prefs.theme !== "auto") bd.classList.add("bk-th-" + prefs.theme);
+    bd.classList.toggle("bk-pages", prefs.turn === "pages");
+    if (!el) return;
+    el.style.setProperty("--bk-font", prefs.font);
+    el.style.setProperty("--bk-lh", LHS[prefs.lh] || LHS.m);
+    el.style.setProperty("--bk-mw", MWS[prefs.mw] || MWS.m);
+    el.classList.toggle("bk-serif", !!prefs.serif);
+    el.classList.toggle("bk-just", !!prefs.justify);
+  }
+  /** Fenêtre par-dessus le lecteur (sommaire, affichage) : Retour / Échap / clic à côté la ferment. */
+  function sheet(cls, html, label) {
+    const ov = document.createElement("div");
+    ov.className = "bk-modal-ov bk-sheet-ov " + cls;
+    ov.innerHTML = `<div class="panel bk-sheet" role="dialog" aria-modal="true" aria-label="${esc(label)}">${html}</div>`;
+    let pushed = false;
+    try { history.pushState({ bkSheet: 1 }, "", location.href); pushed = true; } catch { /* */ }
+    const prevFocus = document.activeElement;
+    const gone = () => {
+      if (!ov.isConnected) return;
+      ov.remove(); removeEventListener("keydown", key); removeEventListener("popstate", gone); removeEventListener("hashchange", gone);
+      if (prevFocus && prevFocus.isConnected && prevFocus.focus) prevFocus.focus({ preventScroll: true });
+    };
+    const close = () => { if (pushed && history.state && history.state.bkSheet) history.back(); else gone(); };
+    const key = e => { if (e.key === "Escape") { e.preventDefault(); close(); } };
+    addEventListener("keydown", key); addEventListener("popstate", gone); addEventListener("hashchange", gone);
+    ov.addEventListener("click", e => { if (e.target === ov || e.target.closest("[data-sh=close]")) close(); });
+    document.body.appendChild(ov);
+    return { ov, close, gone };
+  }
+
+  /** Tout ce qui fait du lecteur une liseuse. v : variante du texte affiché (langue, ou « tr » pour la traduction). */
+  function readerUx(b, ch, v) {
+    const n = ch.n, key = b.id + "|" + n, r = rd(), base = `#/books/${encodeURIComponent(b.id)}`;
+    const reader = root.querySelector(".bk-reader"), art = root.querySelector(".bk-content");
+    const foot = root.querySelector("#bk-foot"), footT = foot && foot.querySelector("#bk-foot-t"), footBar = foot && foot.querySelector(".bk-foot-bar span");
+    if (!reader || !art) return { afterText() {} };
+    uxAbort = new AbortController();
+    const sig = { signal: uxAbort.signal };
+    applyLook(reader);
+    const words = chWords(b, ch);
+    let blocks = null;
+    const B = () => {
+      if (blocks) return blocks;
+      const all = [...art.querySelectorAll(BSEL)];
+      blocks = all.filter(el => { const p = el.parentElement && el.parentElement.closest(BSEL); return !p || !art.contains(p); });
+      if (!blocks.length) blocks = [art];
+      return blocks;
+    };
+    const topY = () => {
+      const tb = document.querySelector(".topbar"), pl = root.querySelector("#bk-player");
+      return (tb ? tb.getBoundingClientRect().bottom : 0) + (pl && !pl.hidden ? pl.offsetHeight + 8 : 0) + 6;
+    };
+    const blockOf = node => {
+      let el = node && (node.nodeType === 1 ? node : node.parentElement);
+      const list = B();
+      while (el && el !== art) { if (list.includes(el)) return el; el = el.parentElement; }
+      return null;
+    };
+    /** Bloc en haut de l'écran : { i, o } (o = part du bloc déjà passée). */
+    const cur = () => {
+      const y = topY(), list = B();
+      for (let i = 0; i < list.length; i++) {
+        const rc = list[i].getBoundingClientRect();
+        if (rc.bottom > y) return { i, o: rc.height ? Math.max(0, Math.min(1, (y - rc.top) / rc.height)) : 0 };
+      }
+      return { i: Math.max(0, list.length - 1), o: 1 };
+    };
+    readerTop = () => B()[cur().i] || null;
+    const frac = () => {
+      const rc = art.getBoundingClientRect(), y = topY(), span = rc.height - (innerHeight - y);
+      if (span <= 0) return rc.bottom <= innerHeight + 2 ? 1 : 0;
+      return Math.max(0, Math.min(1, (y - rc.top) / span));
+    };
+    const scrollToBlock = (i, o = 0, smooth = false) => {
+      const el = B()[Math.min(i, B().length - 1)]; if (!el) return;
+      const y = scrollY + el.getBoundingClientRect().top + (o || 0) * el.offsetHeight - topY();
+      scrollTo({ top: Math.max(0, y), behavior: smooth ? "smooth" : "auto" });
+    };
+    const scrollToFrac = f => {
+      const rc = art.getBoundingClientRect(), y = topY(), span = rc.height - (innerHeight - y);
+      scrollTo({ top: Math.max(0, scrollY + rc.top - y + Math.max(0, span) * f) });
+    };
+
+    /* progression en bas de l'écran */
+    // téléphone : la barre d'onglets est en bas de l'écran, la progression se place juste au-dessus
+    const placeFoot = () => {
+      if (!foot) return;
+      const nav = document.querySelector(".main-nav"), fixed = nav && getComputedStyle(nav).position === "fixed" && nav.offsetHeight;
+      foot.style.bottom = (fixed ? nav.offsetHeight : 0) + "px";
+      document.documentElement.style.setProperty("--bk-foot-top", (fixed ? nav.offsetHeight : 0) + foot.offsetHeight + "px");
+    };
+    addEventListener("resize", placeFoot, { passive: true, ...sig });
+    const paintFoot = f => {
+      if (!foot) return;
+      const left = words ? mins((words * (1 - f)) / WPM_READ) : 0;
+      footBar.style.width = pctTxt(f) + "%";
+      footT.textContent = [`${t("chapter")} ${n}/${b.chapters.length}`, f >= 0.995 ? t("chEnd") : `${pctTxt(f)} %` + (words ? " · " + t("leftChS", { m: left }) : ""),
+        t("pctBook", { p: pctTxt(bookPct(b)) })].join("  ·  ");
+    };
+    let ready = false, userMoved = false, saveT = 0;
+    const onScroll = () => {
+      if (saveT) return;
+      saveT = requestAnimationFrame(() => {
+        saveT = 0;
+        const f = frac();
+        if (ready) { const c = cur(); r.spot[key] = { i: c.i, o: Math.round(c.o * 1000) / 1000, f: Math.round(f * 1000) / 1000, v, at: Date.now() }; rSave(); }
+        paintFoot(f); paintBmBtn();
+      });
+    };
+    addEventListener("scroll", onScroll, { passive: true, ...sig });
+    addEventListener("resize", onScroll, { passive: true, ...sig });
+    ["wheel", "touchstart", "keydown"].forEach(ev => addEventListener(ev, () => { userMoved = true; }, { passive: true, ...sig }));
+
+    /* reprise à l'endroit exact */
+    let jump = null; try { jump = JSON.parse(sessionStorage.getItem("bk-jump") || "null"); sessionStorage.removeItem("bk-jump"); } catch { /* */ }
+    let auto = null; try { auto = sessionStorage.getItem("bk-auto"); } catch { /* */ }
+    const restore = (quiet) => {
+      const sp = jump && jump.k === key ? jump : r.spot[key];
+      if (auto === key || !sp || (!sp.i && !sp.o && !(sp.f > 0.01))) { if (!quiet) scrollTo(0, 0); return false; }
+      if (sp.v && sp.v !== v) { if (sp.f > 0.01) scrollToFrac(sp.f); else scrollTo(0, 0); }
+      else scrollToBlock(sp.i, sp.o);
+      return sp.f > 0.02 && !(jump && jump.k === key) ? sp.f : true;
+    };
+    const restored = restore(false);
+    // les images (sans taille connue) décalent le texte en se chargeant : on se recale tant que l'utilisateur n'a pas bougé
+    art.querySelectorAll("img").forEach(im => { if (!im.complete) im.addEventListener("load", () => { if (!userMoved && restored) restore(true); }, { once: true, ...sig }); });
+    setTimeout(() => { ready = true; onScroll(); }, 400);
+    if (typeof restored === "number" && restored < 0.995) {
+      const pill = document.createElement("div");
+      pill.className = "bk-pill mono"; pill.setAttribute("role", "status");
+      pill.innerHTML = `<span>↩ ${esc(t("resumed", { p: pctTxt(restored) }))}</span><button class="btn btn-ghost btn-xs">${esc(t("toStart"))}</button>`;
+      pill.querySelector("button").onclick = () => { pill.remove(); scrollTo({ top: 0, behavior: "smooth" }); };
+      document.body.appendChild(pill);
+      setTimeout(() => pill.classList.add("bk-pill-out"), 4500);
+      setTimeout(() => pill.remove(), 5200);
+      uxAbort.signal.addEventListener("abort", () => pill.remove());
+    }
+
+    /* signets */
+    const bms = () => (r.bm[b.id] ||= []);
+    const bmBtn = root.querySelector("#bk-bm");
+    const visibleBm = () => {
+      const list = B(), c = cur().i;
+      let last = c; while (last + 1 < list.length && list[last + 1].getBoundingClientRect().top < innerHeight - 40) last++;
+      return bms().find(m => m.n === n && (!m.v || m.v === v) && m.i >= c && m.i <= last) || null;
+    };
+    function paintBmBtn() {
+      if (!bmBtn) return;
+      const on = !!visibleBm(); bmBtn.setAttribute("aria-pressed", String(on));
+      bmBtn.title = bmBtn.ariaLabel = t(on ? "bmDel" : "bmAdd");
+    }
+    const paintBms = () => {
+      B().forEach(el => el.classList.remove("bk-bmk"));
+      bms().filter(m => m.n === n && (!m.v || m.v === v)).forEach(m => { const el = B()[m.i]; if (el) el.classList.add("bk-bmk"); });
+      paintBmBtn();
+    };
+    if (bmBtn) bmBtn.onclick = () => {
+      const hit = visibleBm();
+      if (hit) { r.bm[b.id] = bms().filter(m => m !== hit); toast(t("bmRm"), "ok"); }
+      else {
+        const c = cur(), el = B()[c.i];
+        bms().push({ n, i: c.i, o: Math.round(c.o * 1000) / 1000, v, x: (el ? el.textContent : "").replace(/\s+/g, " ").trim().slice(0, 140), at: Date.now() });
+        toast(t("bmOk"), "ok");
+      }
+      rSave(true); paintBms();
+    };
+
+    /* surlignages (Custom Highlight API : le texte n'est pas modifié, la lecture à voix haute n'est pas gênée) */
+    const hls = () => (r.hl[b.id] ||= []);
+    const pointAt = (el, off) => {
+      const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); let pos = 0, nd, last = null;
+      while ((nd = w.nextNode())) { const L2 = nd.nodeValue.length; if (off <= pos + L2) return [nd, Math.max(0, off - pos)]; pos += L2; last = nd; }
+      return last ? [last, last.nodeValue.length] : [el, 0];
+    };
+    const offsetIn = (el, node, off) => { const rg = document.createRange(); rg.selectNodeContents(el); try { rg.setEnd(node, off); } catch { return 0; } return rg.toString().length; };
+    const rangeOf = h => {
+      const a = B()[h.i], z = B()[h.j]; if (!a || !z) return null;
+      try { const rg = document.createRange(); rg.setStart(...pointAt(a, h.a)); rg.setEnd(...pointAt(z, h.z)); return rg; } catch { return null; }
+    };
+    const paintHls = () => {
+      if (!canHL()) return;
+      const mine = hls().filter(h => h.n === n && h.v === v);
+      for (const c of HLC) {
+        const rs = mine.filter(h => h.c === c).map(rangeOf).filter(Boolean);
+        if (rs.length) CSS.highlights.set("bk-hl-" + c, new Highlight(...rs)); else CSS.highlights.delete("bk-hl-" + c);
+      }
+    };
+    /* menu sur une sélection de texte : couleurs, copier, écouter d'ici */
+    let menu = null, selInfo = null;
+    const hideMenu = () => { if (menu) { menu.remove(); menu = null; } selInfo = null; };
+    uxAbort.signal.addEventListener("abort", hideMenu);
+    const readSel = () => {
+      const s = getSelection(); if (!s || s.isCollapsed || !s.rangeCount) return null;
+      const rg = s.getRangeAt(0); if (!art.contains(rg.commonAncestorContainer)) return null;
+      const A = blockOf(rg.startContainer), Z = blockOf(rg.endContainer); if (!A || !Z) return null;
+      const list = B(), i = list.indexOf(A), j = list.indexOf(Z);
+      const h = { n, v, i, a: offsetIn(A, rg.startContainer, rg.startOffset), j, z: offsetIn(Z, rg.endContainer, rg.endOffset), x: rg.toString().replace(/\s+/g, " ").trim().slice(0, 400) };
+      if (!h.x || i < 0 || j < 0) return null;
+      return { h, rect: rg.getBoundingClientRect() };
+    };
+    const overlaps = h => hls().filter(o => o.n === n && o.v === v && (o.i < h.j || (o.i === h.j && o.a < h.z)) && (h.i < o.j || (h.i === o.j && h.a < o.z)));
+    const showMenu = () => {
+      const info = readSel(); if (!info) return hideMenu();
+      selInfo = info;
+      const ov = overlaps(info.h);
+      if (!menu) { menu = document.createElement("div"); menu.className = "bk-selmenu"; menu.setAttribute("role", "toolbar"); document.body.appendChild(menu); }
+      menu.innerHTML = HLC.map(c => `<button class="bk-hlc bk-hlc-${c}" data-hl="${c}" title="${esc(t("hl"))}" aria-label="${esc(t("hl"))} ${c}"></button>`).join("")
+        + (ov.length ? `<button class="btn btn-ghost btn-xs" data-sm="rm">✕ ${esc(t("hlDel"))}</button>` : "")
+        + `<button class="btn btn-ghost btn-xs" data-sm="copy">⧉ ${esc(t("copy"))}</button>`
+        + (tts.can && player ? `<button class="btn btn-ghost btn-xs" data-sm="say">🔊 ${esc(t("listenHere"))}</button>` : "");
+      const rc = info.rect, mw = Math.min(menu.offsetWidth || 320, innerWidth - 16);
+      const below = rc.bottom + 12 + 52 < innerHeight;            // sous la sélection : la barre d'Android s'affiche au-dessus
+      menu.style.left = Math.max(8, Math.min(innerWidth - mw - 8, rc.left + rc.width / 2 - mw / 2)) + "px";
+      menu.style.top = (below ? rc.bottom + 12 : Math.max(topY(), rc.top - 56)) + "px";
+    };
+    let selT = 0;
+    document.addEventListener("selectionchange", () => { clearTimeout(selT); selT = setTimeout(() => { const s = getSelection(); if (!s || s.isCollapsed) { if (menu && !menu.matches(":hover")) hideMenu(); } else showMenu(); }, 250); }, sig);
+    document.addEventListener("pointerdown", e => { if (menu && !menu.contains(e.target)) setTimeout(() => { const s = getSelection(); if (!s || s.isCollapsed) hideMenu(); }, 300); }, { capture: true, ...sig });
+    addEventListener("scroll", () => { if (menu && selInfo) showMenu(); }, { passive: true, ...sig });
+    document.addEventListener("click", e => {
+      if (!menu || !menu.contains(e.target) || !selInfo) return;
+      const h = selInfo.h, c = e.target.closest("[data-hl]"), a = e.target.closest("[data-sm]");
+      if (c) { r.hl[b.id] = hls().filter(o => !overlaps(h).includes(o)); hls().push({ ...h, c: c.dataset.hl, at: Date.now() }); rSave(true); paintHls(); toast(t("hlOk"), "ok"); }
+      else if (a && a.dataset.sm === "rm") { const gone = overlaps(h); r.hl[b.id] = hls().filter(o => !gone.includes(o)); rSave(true); paintHls(); }
+      else if (a && a.dataset.sm === "copy") { (navigator.clipboard ? navigator.clipboard.writeText(h.x) : Promise.reject()).then(() => toast(t("copied"), "ok")).catch(() => {}); }
+      else if (a && a.dataset.sm === "say") { const el = B()[h.i]; if (player && player.at && el) player.at(el); }
+      else return;
+      try { getSelection().removeAllRanges(); } catch { /* */ }
+      hideMenu();
+    }, sig);
+
+    /* tourner les pages : bords de l'écran, glissement, clavier et télécommande */
+    const pageH = () => Math.max(120, innerHeight - topY() - (foot ? foot.offsetHeight : 0) - 48);
+    const atEnd = () => scrollY + innerHeight >= document.documentElement.scrollHeight - 4;
+    const page = dir => {
+      hideMenu();
+      if (dir > 0 && atEnd()) { const nx = nextOf(b, n); if (nx && prefs.turn === "pages") location.hash = `${base}/${nx}`; return; }
+      scrollBy({ top: dir * pageH(), behavior: isTv() ? "auto" : "smooth" });
+    };
+    window.__bkPage = dir => { if (!reader.isConnected) return false; page(dir); return true; };
+    uxAbort.signal.addEventListener("abort", () => { window.__bkPage = null; });
+    const noTurn = e => e.target.closest("a, button, input, select, label, img, pre, table, .bk-set, .bk-player, .bk-notes, .bk-end") || document.body.classList.contains("bk-playing");
+    reader.addEventListener("click", e => {
+      if (prefs.turn !== "pages" || noTurn(e)) return;
+      const s = getSelection(); if (s && !s.isCollapsed) return;
+      const x = e.clientX / innerWidth;
+      if (x > 0.72) page(1); else if (x < 0.28) page(-1);
+    }, sig);
+    let tx = null;
+    reader.addEventListener("touchstart", e => { tx = e.touches.length === 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() } : null; }, { passive: true, ...sig });
+    reader.addEventListener("touchend", e => {
+      if (!tx || prefs.turn !== "pages" || noTurn(e)) return;
+      const p = e.changedTouches[0], dx = p.clientX - tx.x, dy = p.clientY - tx.y;
+      if (Date.now() - tx.t < 700 && Math.abs(dx) > 60 && Math.abs(dx) > 1.6 * Math.abs(dy)) { const s = getSelection(); if (!s || s.isCollapsed) page(dx < 0 ? 1 : -1); }
+      tx = null;
+    }, { passive: true, ...sig });
+    addEventListener("keydown", e => {
+      if (e.altKey || e.ctrlKey || e.metaKey || document.querySelector(".bk-sheet-ov, .bk-modal-ov, .bk-zoom")) return;
+      const tg = e.target; if (tg && tg.matches && tg.matches("input, textarea, select")) return;
+      let d = { PageDown: 1, PageUp: -1, ChannelDown: 1, ChannelUp: -1 }[e.key] || 0;
+      if (!d && prefs.turn === "pages" && !isTv()) d = { ArrowRight: 1, ArrowLeft: -1 }[e.key] || 0;
+      if (!d && e.key === " " && !(tg && tg.closest && tg.closest("button, a"))) d = e.shiftKey ? -1 : 1;
+      if (!d) return;
+      e.preventDefault(); page(d);
+    }, sig);
+
+    /* sommaire, signets et surlignages */
+    const openDrawer = (tab = "toc") => {
+      const ul = uiLang(), pr = P.books[b.id] || {};
+      const bl = bms().slice().sort((x, y) => x.n - y.n || x.i - y.i), hl = hls().slice().sort((x, y) => x.n - y.n || x.i - y.i || x.a - y.a);
+      const chT = m => { const c = b.chapters.find(x => x.n === m); return `${t("chapter")} ${m}${c && pick(c, "title", ul) ? " · " + pick(c, "title", ul) : ""}`; };
+      const sh = sheet("bk-drawer-ov", `
+        <div class="bk-sheet-head"><h3 class="mono">${esc(pick(b, "title", ul))}</h3><button class="icon-btn" data-sh="close" aria-label="${esc(t("close"))}" title="${esc(t("close"))}">✕</button></div>
+        <div class="seg bk-tabs" role="tablist">${[["toc", t("tabToc"), b.chapters.length], ["bm", t("tabBm"), bl.length], ["hl", t("tabHl"), hl.length]].map(([k, lab, c]) =>
+          `<button class="seg-btn mono" role="tab" data-tab="${k}" aria-selected="${k === tab}">${esc(lab)} <small>${c}</small></button>`).join("")}</div>
+        <div class="bk-tabp" data-p="toc" ${tab === "toc" ? "" : "hidden"}><ol class="bk-dtoc">${b.chapters.map(c => {
+          const rr = pr[c.n] || {}, sp = r.spot[b.id + "|" + c.n];
+          return `<li><a href="${base}/${c.n}" class="bk-dtoc-row${c.n === n ? " cur" : ""}${rr.r ? " done" : ""}" ${c.n === n ? 'aria-current="page"' : ""}>
+            <span class="bk-num mono">${c.n}</span><span class="bk-toc-t">${pick(c, "section", ul) ? `<small class="muted">${esc(pick(c, "section", ul))}</small><br>` : ""}${esc(pick(c, "title", ul))}</span>
+            <span class="bk-toc-s mono">${rr.r ? '<span class="bk-check">✓</span>' : sp && sp.f > 0.02 ? `<span class="muted">${pctTxt(sp.f)} %</span>` : ""}</span></a></li>`; }).join("")}</ol></div>
+        <div class="bk-tabp" data-p="bm" ${tab === "bm" ? "" : "hidden"}>${bl.length ? `<ul class="bk-notes-l">${bl.map(m => `<li>
+            <button class="bk-note-go" data-go="${m.n}|${m.i}|${m.o || 0}|${esc(m.v || "")}"><span class="mono muted">🔖 ${esc(chT(m.n))}${m.v && m.v !== v && m.n === n ? " · " + esc(t("other")) : ""} · ${esc(ago(m.at))}</span><span>${esc(m.x || "…")}</span></button>
+            <button class="icon-btn" data-rmbm="${m.at}" aria-label="${esc(t("bmDel"))}" title="${esc(t("bmDel"))}">✕</button></li>`).join("")}</ul>` : `<p class="muted">${esc(t("bmNone"))}</p>`}</div>
+        <div class="bk-tabp" data-p="hl" ${tab === "hl" ? "" : "hidden"}>${hl.length ? `<ul class="bk-notes-l">${hl.map(h => `<li>
+            <button class="bk-note-go" data-go="${h.n}|${h.i}|0|${esc(h.v)}"><span class="mono muted"><i class="bk-hlc bk-hlc-${h.c}"></i> ${esc(chT(h.n))}${h.v !== v ? " · " + esc(t("other")) : ""}</span><span class="bk-hl-x bk-hl-x-${h.c}">${esc(h.x)}</span></button>
+            <button class="icon-btn" data-rmhl="${h.at}" aria-label="${esc(t("hlDel"))}" title="${esc(t("hlDel"))}">✕</button></li>`).join("")}</ul>` : `<p class="muted">${esc(t("hlNone"))}</p>`}</div>`, t("drawer"));
+      const ov = sh.ov;
+      ov.querySelectorAll("[data-tab]").forEach(x => x.onclick = () => {
+        ov.querySelectorAll("[data-tab]").forEach(y => y.setAttribute("aria-selected", String(y === x)));
+        ov.querySelectorAll("[data-p]").forEach(p => { p.hidden = p.dataset.p !== x.dataset.tab; });
+      });
+      ov.addEventListener("click", e => {
+        const g = e.target.closest("[data-go]");
+        if (g) {
+          const [m, i, o, vv] = g.dataset.go.split("|");
+          if (+m === n) { sh.close(); setTimeout(() => { if (vv && vv !== v) return; scrollToBlock(+i, +o, true); }, 60); return; }
+          try { sessionStorage.setItem("bk-jump", JSON.stringify({ k: b.id + "|" + m, i: +i, o: +o, v: vv || null })); } catch { /* */ }
+          sh.gone(); location.hash = `${base}/${m}`; return;
+        }
+        const rb = e.target.closest("[data-rmbm]"), rh = e.target.closest("[data-rmhl]");
+        if (rb) { r.bm[b.id] = bms().filter(x => String(x.at) !== rb.dataset.rmbm); rSave(true); paintBms(); rb.closest("li").remove(); }
+        if (rh) { r.hl[b.id] = hls().filter(x => String(x.at) !== rh.dataset.rmhl); rSave(true); paintHls(); rh.closest("li").remove(); }
+      });
+      const curRow = ov.querySelector(".bk-dtoc-row.cur");
+      if (tab === "toc" && curRow) curRow.scrollIntoView({ block: "center" });
+      (ov.querySelector(`[data-tab="${tab}"]`) || ov.querySelector("button")).focus({ preventScroll: true });
+    };
+    const dr = root.querySelector("#bk-drawer");
+    if (dr) dr.onclick = () => openDrawer("toc");
+
+    /* affichage : thème, taille, police, interligne, marges, pages */
+    const openLook = () => {
+      const segs = (k, list, cur) => `<div class="seg" role="group">${list.map(([val, lab]) => `<button class="seg-btn mono" data-look="${k}" data-val="${val}" aria-pressed="${String(cur) === String(val)}">${esc(lab)}</button>`).join("")}</div>`;
+      const sh = sheet("bk-look-ov", `
+        <div class="bk-sheet-head"><h3 class="mono">Aa ${esc(t("look"))}</h3><button class="icon-btn" data-sh="close" aria-label="${esc(t("close"))}" title="${esc(t("close"))}">✕</button></div>
+        <div class="bk-look-f"><span class="mono muted">${esc(t("theme"))}</span><div class="bk-themes">${THEMES.map(x =>
+          `<button class="bk-thb bk-thb-${x}" data-look="theme" data-val="${x}" aria-pressed="${(prefs.theme || "auto") === x}"><span>Aa</span>${esc(t("th_" + x))}</button>`).join("")}</div></div>
+        <div class="bk-look-f"><span class="mono muted">${esc(t("font"))} : <strong id="bk-look-fs">${pctTxt(prefs.font)} %</strong></span>
+          <div class="seg" role="group"><button class="seg-btn mono" data-look="font" data-val="-1">A−</button><button class="seg-btn mono" data-look="font" data-val="1">A+</button></div></div>
+        <div class="bk-look-f"><span class="mono muted">${esc(t("face"))}</span>${segs("serif", [[0, t("f_sans")], [1, t("f_serif")]], prefs.serif ? 1 : 0)}</div>
+        <div class="bk-look-f"><span class="mono muted">${esc(t("lh"))}</span>${segs("lh", [["s", t("lh_s")], ["m", t("lh_m")], ["l", t("lh_l")]], prefs.lh || "m")}</div>
+        <div class="bk-look-f"><span class="mono muted">${esc(t("mw"))}</span>${segs("mw", [["s", t("mw_s")], ["m", t("mw_m")], ["l", t("mw_l")]], prefs.mw || "m")}</div>
+        <label class="bk-set-chain"><input type="checkbox" id="bk-just" ${prefs.justify ? "checked" : ""}> <span>${esc(t("justify"))}</span></label>
+        <div class="bk-look-f"><span class="mono muted">${esc(t("turn"))}</span>${segs("turn", [["scroll", t("turn_scroll")], ["pages", t("turn_pages")]], prefs.turn || "scroll")}
+          <p class="muted bk-look-hint">${esc(t("turnHint"))}</p></div>`, t("look"));
+      const ov = sh.ov;
+      ov.addEventListener("click", e => {
+        const x = e.target.closest("[data-look]"); if (!x) return;
+        const k = x.dataset.look, val = x.dataset.val;
+        const keep = cur();                          // le texte en haut de l'écran reste en place quand la mise en page change
+        if (k === "font") {
+          prefs.font = Math.min(1.5, Math.max(0.85, Math.round((prefs.font + 0.1 * +val) * 100) / 100));
+          ov.querySelector("#bk-look-fs").textContent = pctTxt(prefs.font) + " %";
+        } else {
+          prefs[k] = k === "serif" ? !!+val : val;
+          ov.querySelectorAll(`[data-look="${k}"]`).forEach(y => y.setAttribute("aria-pressed", String(y === x)));
+        }
+        savePrefs(); applyLook(reader); blocks = null; scrollToBlock(keep.i, keep.o); onScroll();
+      });
+      ov.querySelector("#bk-just").onchange = e => { prefs.justify = e.target.checked; savePrefs(); applyLook(reader); };
+      const f0 = ov.querySelector('[data-look="theme"][aria-pressed="true"]'); if (f0) f0.focus({ preventScroll: true });
+    };
+    const lk = root.querySelector("#bk-look");
+    if (lk) lk.onclick = openLook;
+
+    paintBms(); paintHls(); paintFoot(frac()); placeFoot();
+    return {
+      /** Texte remplacé (traduction) : blocs recalculés, surlignages et position remis. */
+      afterText(nv) {
+        if (!reader.isConnected) return;
+        if (nv) v = nv;
+        blocks = null; paintBms(); paintHls();
+        if (!userMoved) restore(true);
+        onScroll();
+      },
+    };
   }
 
   /* ---------------- traduction automatique ---------------- */
@@ -1426,13 +1930,21 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     // position du lecteur : juste sous la barre de titre (sa hauteur change avec la largeur de l'écran)
     const tbH = () => { const tb = document.querySelector(".topbar"); document.documentElement.style.setProperty("--tb-h", (tb ? tb.offsetHeight : 0) + "px"); };
     tbH(); addEventListener("resize", tbH, { passive: true });
+    // première écoute du chapitre : elle part du passage affiché en haut de l'écran
+    const segAt = el => {
+      let j = segs.findIndex(s => s.el === el || el.contains(s.el) || s.el.contains(el));
+      if (j < 0) j = segs.findIndex(s => el.compareDocumentPosition(s.el) & Node.DOCUMENT_POSITION_FOLLOWING);
+      return j;
+    };
+    const startHere = () => { if (P.pos[key] || !readerTop || scrollY < 40) return; const el = readerTop(), j = el ? segAt(el) : -1; if (j > 0) player.i = j; };
+    player.at = el => { const j = segAt(el); if (j < 0) return; if (bar.hidden) { bar.hidden = false; document.body.classList.add("bk-playing"); } play(j); };
     const open = () => {
       bar.hidden = false; document.body.classList.add("bk-playing");
       if (lang === "fr" && !tts.canFr) toast(t("noVoiceFr"), "warn");
       else if (window.AndroidListen && !bgWarned) { try { if (!window.AndroidListen.notifOk()) { bgWarned = true; toast(t("bgNotif"), "warn"); } } catch { /* */ } }
       play(player.i);
     };
-    if (btn) btn.onclick = () => (bar.hidden ? open() : player.playing ? pause() : play(player.i));
+    if (btn) btn.onclick = () => (bar.hidden ? (startHere(), open()) : player.playing ? pause() : play(player.i));
     bar.onclick = e => {
       const a = e.target.closest("[data-pl]"); if (!a || !player) return;
       const k = a.dataset.pl;
@@ -1539,7 +2051,10 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     if (player) { player.token++; player.playing = false; player = null; tts.stop(); const m = media(); if (m) try { m.end(); } catch { /* */ } }
     screenAwake(false);
     clearHL();
-    document.body.classList.remove("bk-playing", "bk-set-on");
+    document.body.classList.remove("bk-playing", "bk-set-on", "bk-pages", ...THEMES.map(x => "bk-th-" + x));
+    if (uxAbort) { uxAbort.abort(); uxAbort = null; }
+    readerTop = null;
+    if (canHL()) HLC.forEach(c => CSS.highlights.delete("bk-hl-" + c));
   }
 
   /* ---------------- quiz de fin de chapitre ---------------- */
