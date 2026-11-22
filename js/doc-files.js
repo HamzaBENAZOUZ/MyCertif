@@ -48,7 +48,12 @@ export async function pickFile(input) {
   if (app()) {
     let saved = "";
     try { saved = app().lastImport() || ""; } catch { /* */ }
-    return { file, keep: (uid, id) => put(uid, id, { kind: "app", name: file.name, size: file.size, file: saved }) };
+    const copy = async () => {
+      if (!saved) return null;
+      const res = await fetch(new URL("__files/" + encodeURIComponent(saved), document.baseURI), { cache: "no-store" });
+      return res.ok ? new File([await res.blob()], file.name) : null;
+    };
+    return { file, copy, keep: (uid, id) => put(uid, id, { kind: "app", name: file.name, size: file.size, file: saved }) };
   }
   return { file, keep: (uid, id) => put(uid, id, { kind: "copy", name: file.name, size: file.size, blob: file }) };
 }

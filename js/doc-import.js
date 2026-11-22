@@ -163,6 +163,54 @@ async function shrink(blob) {
   finally { if (url) URL.revokeObjectURL(url); }
 }
 
+/**
+ * Lecture de secours d'une archive ZIP : on suit les en-têtes locaux (« PK\x03\x04 ») du début à la fin du fichier,
+ * avec les tailles du répertoire central quand il existe. Rend une archive JSZip reconstruite, ou null.
+ */
+async function salvageZip(buf, JSZip) {
+  const u8 = new Uint8Array(buf), dv = new DataView(buf), dec = new TextDecoder();
+  const sig = (i, c, d) => u8[i] === 0x50 && u8[i + 1] === 0x4b && u8[i + 2] === c && u8[i + 3] === d;
+  const cd = new Map();
+  for (let i = u8.length - 22; i >= Math.max(0, u8.length - 65557); i--) {
+    if (!sig(i, 5, 6)) continue;
+    let p = dv.getUint32(i + 16, true);
+    if (p >= u8.length || !sig(p, 1, 2)) {   // positions décalées : on cherche le répertoire central
+      p = -1; for (let j = i - 46; j >= 0 && i - j < 4e6; j--) if (sig(j, 1, 2)) p = j; else if (p >= 0 && j < p - 4096) break;
+    }
+    for (let k = 0; p >= 0 && p + 46 <= u8.length && sig(p, 1, 2) && k < 100000; k++) {
+      const nl = dv.getUint16(p + 28, true), el = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true);
+      cd.set(dec.decode(u8.subarray(p + 46, p + 46 + nl)), { size: dv.getUint32(p + 20, true), method: dv.getUint16(p + 10, true) });
+      p += 46 + nl + el + cl;
+    }
+    break;
+  }
+  const inflate = async d => new Uint8Array(await new Response(new Blob([d]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer());
+  const out = new JSZip();
+  let n = 0;
+  for (let i = 0; i + 30 <= u8.length; ) {
+    if (!sig(i, 3, 4)) { i++; continue; }
+    const flags = dv.getUint16(i + 6, true), method = dv.getUint16(i + 8, true);
+    let size = dv.getUint32(i + 18, true);
+    const nl = dv.getUint16(i + 26, true), el = dv.getUint16(i + 28, true);
+    const name = dec.decode(u8.subarray(i + 30, i + 30 + nl)), start = i + 30 + nl + el;
+    if ((flags & 8) || size === 0xffffffff || (size === 0 && method === 8)) {
+      const c = cd.get(name);
+      if (c && c.size && c.size !== 0xffffffff) size = c.size;
+      else { let j = start; while (j + 4 <= u8.length && !sig(j, 7, 8) && !sig(j, 3, 4) && !sig(j, 1, 2)) j++; size = j - start; }
+    }
+    if (!nl || start + size > u8.length) { i++; continue; }
+    if (!name.endsWith("/")) {
+      try {
+        const data = u8.subarray(start, start + size);
+        const bytes = method === 0 ? data : method === 8 ? await inflate(data) : null;
+        if (bytes && !out.file(name)) { out.file(name, bytes); n++; }
+      } catch { i++; continue; }
+    }
+    i = start + size;
+  }
+  return n && out.file(/container\.xml$/i).length ? out : null;
+}
+
 /* ---------------- EPUB ---------------- */
 const tags = (n, name) => [...n.getElementsByTagNameNS("*", name)];
 function joinPath(base, href) {
@@ -318,7 +366,16 @@ function epubTokens(doc, path, push0) {
 
 async function parseEpub(file, onStep, t) {
   const JSZip = await loadJSZip();
-  const zip = await JSZip.loadAsync(await file.arrayBuffer());
+  const buf = await file.arrayBuffer();
+  let zip;
+  try { zip = await JSZip.loadAsync(buf); }
+  catch (e) {
+    // archive que JSZip refuse (positions du sommaire de l'archive fausses, octets en trop, zip64…) :
+    // lecture fichier par fichier, comme les autres liseuses
+    console.warn("EPUB : lecture de secours", e);
+    zip = await salvageZip(buf, JSZip).catch(() => null);
+    if (!zip) throw Object.assign(new Error(t("badZip")), { zip: true });
+  }
   const names = Object.keys(zip.files), lower = new Map(names.map(n => [n.toLowerCase(), n]));
   const entry = p => zip.file(p) || zip.file(lower.get(String(p).toLowerCase()) || "\0");
   const read = async p => { const f = entry(p); return f ? f.async("string") : null; };
