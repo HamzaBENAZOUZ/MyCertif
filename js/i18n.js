@@ -15,7 +15,7 @@ const DICT = {
     "top.local": "MODE LOCAL",
     "top.theme": "Basculer thème clair / sombre",
     "top.lang": "Langue",
-    "footer.src": "MyCertif · Splunk : quiz du cours Packt SPLK-1001 (licence MIT, © 2025 Packt) + questions originales · AWS : questions du guide d'étude SAA-C03",
+    "footer.src": "MyCertif · Splunk : quiz du cours Packt SPLK-1001 (licence MIT, © 2025 Packt) + questions originales · AWS : questions du guide d'étude SAA-C03 · CEH : examen blanc du guide de Matt Walker",
     "footer.keys": "Raccourcis : A–K choisir · Entrée valider / suivante · M marquer",
 
     "auth.required": "authentification requise",
@@ -39,6 +39,9 @@ const DICT = {
     "sec.guide": "SPLK-1001",
     "sec.practice": "SPLK-1002",
     "sec.aws": "AWS SAA-C03",
+    "sec.ceh": "CEH",
+    "home.subCeh": "EC-Council Certified Ethical Hacker (312-50) : {n} questions (examen blanc du guide de Matt Walker + questions de révision des {c} chapitres), en anglais et en français (125 questions en 4 heures le jour J). Résumés des chapitres dans Books.",
+    "home.testsDescCeh": "L'examen blanc du guide : il montre les chapitres à travailler en priorité. « Mode examen » : chronométré (environ 2 min par question), correction à la fin.",
     "home.subAws": "AWS Certified Solutions Architect – Associate : {n} questions (test d'évaluation + questions de révision des {c} chapitres du guide d'étude), en anglais et en français (65 questions en 130 minutes le jour J, réussite à 720/1000). Résumés des chapitres dans Books.",
     "home.testsDescAws": "Le test d'évaluation du guide : il montre les chapitres à travailler en priorité. « Mode examen » : chronométré (2 min par question), correction à la fin.",
     "home.subPractice": "Splunk Core Certified Power User : {n} questions originales sur les 10 thèmes officiels de l'examen (65 questions en 60 minutes le jour J).",
@@ -213,6 +216,9 @@ const DICT = {
     "domain.20": "Utiliser le Common Information Model (CIM)",
     "domain.31": "Partie I – Les services AWS essentiels",
     "domain.32": "Partie II – Concevoir selon les exigences",
+    "domain.41": "Partie I – Fondamentaux, reconnaissance et piratage des systèmes",
+    "domain.42": "Partie II – Web, sans-fil, mobile, cloud et malwares",
+    "domain.43": "Partie III – Cryptographie, ingénierie sociale, IA et test d'intrusion",
   },
   en: {
     "boot.init": "booting terminal",
@@ -229,7 +235,7 @@ const DICT = {
     "top.local": "LOCAL MODE",
     "top.theme": "Toggle light / dark theme",
     "top.lang": "Language",
-    "footer.src": "MyCertif · Splunk: Packt SPLK-1001 course quizzes (MIT license, © 2025 Packt) + original questions · AWS: SAA-C03 study guide questions",
+    "footer.src": "MyCertif · Splunk: Packt SPLK-1001 course quizzes (MIT license, © 2025 Packt) + original questions · AWS: SAA-C03 study guide questions · CEH: Matt Walker study guide practice exam",
     "footer.keys": "Shortcuts: A–K select · Enter check / next · M mark",
 
     "auth.required": "authentication required",
@@ -253,6 +259,9 @@ const DICT = {
     "sec.guide": "SPLK-1001",
     "sec.practice": "SPLK-1002",
     "sec.aws": "AWS SAA-C03",
+    "sec.ceh": "CEH",
+    "home.subCeh": "EC-Council Certified Ethical Hacker (312-50): {n} questions (practice exam from Matt Walker's study guide + review questions for the {c} chapters), in English and French (125 questions in 4 hours on exam day). Chapter summaries in Books.",
+    "home.testsDescCeh": "The study guide's practice exam: it shows which chapters to work on first. \"Exam mode\" is timed (about 2 min per question) with answers at the end.",
     "home.subAws": "AWS Certified Solutions Architect – Associate: {n} questions (assessment test + review questions from the {c} chapters of the study guide), in English and French (65 questions in 130 minutes on exam day, pass mark 720/1000). Chapter summaries are in Books.",
     "home.testsDescAws": "The study guide's assessment test: it shows which chapters to work on first. \"Exam mode\" is timed (2 min per question) with answers at the end.",
     "home.subPractice": "Splunk Core Certified Power User: {n} original questions across the 10 official exam topics (65 questions in 60 minutes on exam day).",
@@ -427,6 +436,9 @@ const DICT = {
     "domain.20": "Using the Common Information Model (CIM)",
     "domain.31": "Part I – The Core AWS Services",
     "domain.32": "Part II – Architecting for Requirements",
+    "domain.41": "Part I – Foundations, Reconnaissance and System Hacking",
+    "domain.42": "Part II – Web, Wireless, Mobile, Cloud and Malware",
+    "domain.43": "Part III – Cryptography, Social Engineering, AI and the Pen Test",
   },
 };
 
