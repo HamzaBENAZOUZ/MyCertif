@@ -1087,6 +1087,9 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       }).then(r => { try { this.via = natTr().via() || "online"; } catch { /* */ } return r; });
     },
   };
+  /** Texte nettoyé pour Bergamot : caractères de contrôle, invisibles et emoji retirés, longueur bornée. */
+  const bgClean = s => String(s).replace(/[\u0000-\u0008\u000B-\u001F\u007F-\u009F\u200B-\u200F\u2028-\u202E\u2060-\u206F\uFEFF\uFFF0-\uFFFF]/g, "")
+    .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}]/gu, "").replace(/\s+/g, " ").trim().slice(0, 4000) || ".";
   /** Traducteur hors ligne (Bergamot) : modèle téléchargé par l'appli, servi à la page sous __models/. */
   let bgP = null, offlineBroken = false;      // moteur hors ligne en panne sur ce téléphone : secours en ligne pour la session
   function offlineEngine(onModel) {
@@ -1101,10 +1104,35 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
         });
       }
       const m = await import("../vendor/bergamot/translator.js");
-      const T = new m.BatchTranslator({ registryUrl: "__models/registry.json", workers: 2, batchSize: 16, downloadTimeout: 0, pivotLanguage: null });
+      // Un seul moteur (worker) et de petits lots : sur tablette / télé, la WebView donne peu de mémoire à WebAssembly
+      // et deux moteurs en parallèle finissaient en « Aborted() » (mémoire épuisée). Un moteur qui a planté est mort :
+      // on le jette et on en recrée un neuf, puis on retraduit morceau par morceau.
+      const make = () => new m.BatchTranslator({ registryUrl: "__models/registry.json", workers: 1, batchSize: 4, downloadTimeout: 0, pivotLanguage: null });
+      let T = make(), crashes = 0;
+      const reset = () => { try { T.delete(); } catch { /* */ } T = make(); };
+      const one = text => T.translate({ from: "en", to: "fr", text: bgClean(text), html: false }).then(r => r.target.text);
       const eng = {
-        via: "offline", pack: 2500,
-        many: list => Promise.all(list.map(text => T.translate({ from: "en", to: "fr", text, html: false }).then(r => r.target.text))),
+        via: "offline", pack: 1500,
+        async many(list) {
+          try { return await Promise.all(list.map(one)); }
+          catch (e) {
+            if (offlineBroken) throw e;
+            console.warn("traducteur hors ligne : moteur relancé", e);
+            const out = [], miss = [];
+            let dead = true;
+            for (let i = 0; i < list.length; i++) {
+              if (dead) { if (++crashes > 5) { offlineBroken = true; bgP = null; throw e; } reset(); dead = false; }   // trop de plantages : traduction en ligne
+              try { out[i] = await withTimeout(one(list[i]), 60000); }
+              catch { out[i] = null; miss.push(i); dead = true; }
+            }
+            // morceaux que le moteur hors ligne n'arrive pas à traduire : traduction de l'appli (Android ou en ligne)
+            if (miss.length) {
+              try { const r = await appEngine.many(miss.map(i => list[i])); miss.forEach((i, x) => { out[i] = r[x]; }); eng.via = "mixed"; }
+              catch (e2) { console.warn("secours en ligne", e2); }
+            }
+            return out;
+          }
+        },
       };
       await withTimeout(eng.many(["Ready."]), 120000);   // charge le modèle (et vérifie que le moteur marche)
       return eng;
@@ -1153,10 +1181,10 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   }
   /** Morceaux à traduire d'un chapitre : bloc entier, ou seulement le texte hors code si le contenu est mélangé. */
   function trJobs(h1, art) {
-    const els = [h1, ...art.querySelectorAll("h3, p, li, td, th, blockquote, dt, dd, figcaption, caption")].filter(el => el && !el.closest("pre"));
+    const els = [h1, ...art.querySelectorAll("h3, p, li, td, th, blockquote, dt, dd, figcaption, caption")].filter(el => el && !el.closest("pre, svg, math, figure > picture"));
     const jobs = [];
     for (const el of els) {
-      if (!el.querySelector("code, ul, ol, table, p, br, img")) { const src = el.textContent.replace(/\s+/g, " ").trim(); if (src) jobs.push({ src, put: v => { el.textContent = v; } }); continue; }
+      if (!el.querySelector("code, ul, ol, table, p, br, img, svg, picture, math, style")) { const src = el.textContent.replace(/\s+/g, " ").trim(); if (src) jobs.push({ src, put: v => { el.textContent = v; } }); continue; }
       for (const tn of [...el.childNodes].filter(x => x.nodeType === 3 || (x.nodeType === 1 && /^(a|strong|em|b|i|span)$/i.test(x.tagName)))) {
         const raw = tn.textContent; if (!raw.trim()) continue;
         jobs.push({ src: raw.replace(/\s+/g, " ").trim(), put: v => { tn.textContent = (/^\s/.test(raw) ? " " : "") + v + (/\s$/.test(raw) ? " " : ""); } });
@@ -1187,6 +1215,8 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
           for (let x = s; x > 0 && alive(); x--) { status(t("trWait", { s: x })); await sleep(1000); }
           continue;
         }
+        // Le moteur hors ligne a lâché (mémoire de la tablette…) : on continue avec la traduction de l'appli
+        if (tr.via === "offline" || tr.via === "mixed") { console.warn("hors ligne en panne, secours en ligne", e); offlineBroken = true; bgP = null; tr = appEngine; continue; }
         throw e;
       }
       if (!alive()) return false;
