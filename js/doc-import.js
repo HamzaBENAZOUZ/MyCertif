@@ -31,17 +31,31 @@ function loadJSZip() {
 const norm = s => String(s || "").replace(/[­​﻿]/g, "").replace(/\s+/g, " ").trim();
 const escH = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const key = s => norm(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
-const blocksLen = bs => bs.reduce((a, b) => a + b.x.length, 0);
+// une image compte comme un petit paragraphe (un chapitre fait d'images n'est pas « vide »)
+const bLen = b => b.t === "img" ? 200 : b.x.length;
+const blocksLen = bs => bs.reduce((a, b) => a + bLen(b), 0);
+const cellHtml = x => escH(x).replace(/\n/g, "<br>");
 
-/** Blocs ({t: h|p|li|pre, x}) → HTML du lecteur Books. */
+/** Blocs ({t: h|p|li|pre|img|table, x}) → HTML du lecteur Books. */
 export function blocksToHtml(blocks) {
   let out = "", inList = false;
   for (const b of blocks) {
+    if (b.t === "img" && !b.src) continue;
     if (b.t === "li" && !inList) { out += "<ul>"; inList = true; }
     if (b.t !== "li" && inList) { out += "</ul>"; inList = false; }
     if (b.t === "h") out += `<h3>${escH(b.x)}</h3>`;
     else if (b.t === "li") out += `<li>${escH(b.x)}</li>`;
     else if (b.t === "pre") out += `<pre><code>${escH(b.x)}</code></pre>`;
+    else if (b.t === "img") {
+      out += `<figure class="bk-fig"><img src="${escH(b.src)}" alt="${escH(b.alt || "")}"${b.w ? ` width="${b.w}" height="${b.h}"` : ""} loading="lazy" decoding="async">`
+        + (b.cap ? `<figcaption>${escH(b.cap)}</figcaption>` : "") + "</figure>";
+    } else if (b.t === "table") {
+      out += `<div class="bk-table"><table>${b.cap ? `<caption>${escH(b.cap)}</caption>` : ""}<tbody>`
+        + b.rows.map(r => "<tr>" + r.map(c => {
+          const tg = c.h ? "th" : "td";
+          return `<${tg}${c.cs > 1 ? ` colspan="${c.cs}"` : ""}${c.rs > 1 ? ` rowspan="${c.rs}"` : ""}>${cellHtml(c.x)}</${tg}>`;
+        }).join("") + "</tr>").join("") + "</tbody></table></div>";
+    }
     else out += `<p>${escH(b.x)}</p>`;
   }
   return out + (inList ? "</ul>" : "");
@@ -92,8 +106,8 @@ function finish(chs, t) {
     if (blocksLen(c.blocks) <= MAX_CH) { out.push(c); continue; }
     const parts = []; let cur = [], len = 0;
     for (const b of c.blocks) {
-      if (len + b.x.length > MAX_CH * 0.8 && cur.length) { parts.push(cur); cur = []; len = 0; }
-      cur.push(b); len += b.x.length;
+      if (len + bLen(b) > MAX_CH * 0.8 && cur.length) { parts.push(cur); cur = []; len = 0; }
+      cur.push(b); len += bLen(b);
     }
     if (cur.length) parts.push(cur);
     parts.forEach((bs, i) => out.push({ ...c, title: `${c.title} (${t("part")} ${i + 1}/${parts.length})`, blocks: bs }));
@@ -119,6 +133,36 @@ async function thumb(src) {
   } catch { return null; }
 }
 
+/**
+ * Image du livre pour le lecteur : data: URL (WebP, sinon JPEG ; PNG pour les petits schémas) de 1200 px de large au plus.
+ * Les très petites images (puces, filets, icônes de mise en page) sont ignorées.
+ */
+async function shrink(blob) {
+  let url = null;
+  try {
+    url = URL.createObjectURL(blob);
+    const img = await new Promise((ok, ko) => { const i = new Image(); i.onload = () => ok(i); i.onerror = ko; i.src = url; });
+    let w = img.naturalWidth || img.width || 0, h = img.naturalHeight || img.height || 0;
+    if (/svg/.test(blob.type) && (!w || !h)) { w = 800; h = 600; }
+    if (w < 24 || h < 24 || w * h < 2500) return null;
+    const k = Math.min(1, 1200 / w, 1600 / h, Math.sqrt(1.6e6 / (w * h)));
+    const W = Math.max(1, Math.round(w * k)), H = Math.max(1, Math.round(h * k));
+    const c = document.createElement("canvas"); c.width = W; c.height = H;
+    const g = c.getContext("2d");
+    g.fillStyle = "#fff"; g.fillRect(0, 0, W, H);           // fond blanc : schémas transparents lisibles en thème sombre
+    g.drawImage(img, 0, 0, W, H);
+    const tries = [];
+    if (/png|gif|svg/.test(blob.type) && W * H <= 400000) tries.push(c.toDataURL("image/png"));
+    let webp = c.toDataURL("image/webp", 0.82);
+    if (!/^data:image\/webp/.test(webp)) webp = c.toDataURL("image/jpeg", 0.85);
+    tries.push(webp);
+    // le plus léger des formats essayés
+    const src = tries.sort((a, b) => a.length - b.length)[0];
+    return { src, w: W, h: H };
+  } catch { return null; }
+  finally { if (url) URL.revokeObjectURL(url); }
+}
+
 /* ---------------- EPUB ---------------- */
 const tags = (n, name) => [...n.getElementsByTagNameNS("*", name)];
 function joinPath(base, href) {
@@ -140,13 +184,75 @@ function parseXml(s, html = false) {
 }
 
 const SKIP = /^(script|style|head|title|svg|math|object|iframe|img|audio|video|noscript|template)$/;
+const XLINK = "http://www.w3.org/1999/xlink";
+
+/** Texte d'une cellule de tableau : lignes gardées (<br>, paragraphes, puces), le reste en une ligne. */
+function cellText(el) {
+  let out = "";
+  const rd = n => {
+    for (const c of n.childNodes) {
+      if (c.nodeType === 3) { out += c.nodeValue; continue; }
+      if (c.nodeType !== 1) continue;
+      const tg = c.localName.toLowerCase();
+      if (/^(script|style)$/.test(tg)) continue;
+      if (tg === "br") { out += "\n"; continue; }
+      if (tg === "img") { const a = norm(c.getAttribute("alt")); if (a) out += " " + a + " "; continue; }
+      const blk = /^(p|div|li|h[1-6]|pre|tr|dd|dt|blockquote)$/.test(tg);
+      if (blk) out += "\n";
+      if (tg === "li") out += "• ";
+      rd(c);
+      if (blk) out += "\n";
+    }
+  };
+  rd(el);
+  return out.split("\n").map(norm).filter(Boolean).join("\n");
+}
+/** Tableau XHTML → { rows: [[{ x, h, cs, rs }]], cap, x } (tableaux imbriqués : leur texte va dans la cellule). */
+function tableBlock(el) {
+  const rows = [];
+  const own = n => n.closest && n.closest("table") === el;
+  for (const tr of el.querySelectorAll("tr")) {
+    if (!own(tr)) continue;
+    const cells = [...tr.children].filter(c => /^(td|th)$/i.test(c.localName)).map(c => ({
+      x: cellText(c), h: c.localName.toLowerCase() === "th" || (tr.parentElement && tr.parentElement.localName.toLowerCase() === "thead") ? 1 : 0,
+      cs: Math.min(50, +c.getAttribute("colspan") || 1), rs: Math.min(200, +c.getAttribute("rowspan") || 1),
+    }));
+    if (cells.length) rows.push(cells);
+  }
+  const capEl = [...el.children].find(c => c.localName.toLowerCase() === "caption");
+  const cap = capEl ? norm(capEl.textContent) : "";
+  const x = [cap, ...rows.map(r => r.map(c => c.x.replace(/\n/g, " ")).join(" | "))].filter(Boolean).join(" ");
+  return rows.length ? { t: "table", rows, cap, x } : null;
+}
 const BLOCKS = /^(p|div|section|article|h[1-6]|li|pre|blockquote|dd|dt|figcaption|td|th|tr|table|tbody|thead|ul|ol|dl|header|footer|aside|figure|nav|main|body|hr|caption|center|address)$/;
 
 /** Parcourt un document XHTML : flux de jetons {a: ancre} et {t, x} (blocs de texte). */
-function epubTokens(doc, path, push) {
+function epubTokens(doc, path, push0) {
+  let push = push0;
   push({ a: path });
   const body = doc.body || tags(doc, "body")[0] || doc.documentElement;
-  const hasBlock = el => [...el.children].some(c => BLOCKS.test(c.localName.toLowerCase()));
+  const hasImg = el => !!(el.querySelector && el.querySelector("img, svg"));
+  const hasBlock = el => [...el.children].some(c => BLOCKS.test(c.localName.toLowerCase())) || hasImg(el);
+  // image : chemin dans le livre (ou dessin SVG du texte), chargée et réduite après la lecture du fichier
+  const image = (el, tag) => {
+    anchors(el);
+    if (tag === "img") {
+      const src = el.getAttribute("src");
+      if (src && !/^(https?:|data:)/i.test(src)) push({ t: "img", ref: splitHref(path, src).path, alt: norm(el.getAttribute("alt")), x: "" });
+      else if (src && /^data:image\//i.test(src)) push({ t: "img", data: src, alt: norm(el.getAttribute("alt")), x: "" });
+      return;
+    }
+    const im = tags(el, "image")[0];       // <svg><image xlink:href="…"> : couverture, illustration pleine page
+    const href = im && (im.getAttributeNS(XLINK, "href") || im.getAttribute("href") || im.getAttribute("xlink:href"));
+    if (href && !/^(https?:)/i.test(href)) { push({ t: "img", ref: splitHref(path, href).path, alt: "", x: "" }); return; }
+    if (!href && tags(el, "*").length > 2) {   // dessin vectoriel dans le texte
+      try {
+        const c = el.cloneNode(true);
+        if (!c.getAttribute("xmlns")) c.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        push({ t: "img", svg: new XMLSerializer().serializeToString(c), alt: norm(el.getAttribute("aria-label")), x: "" });
+      } catch { /* */ }
+    }
+  };
   const anchors = el => {
     if (el.id) push({ a: path + "#" + el.id });
     const nm = el.getAttribute && el.getAttribute("name");
@@ -158,6 +264,34 @@ function epubTokens(doc, path, push) {
   };
   const walk = el => {
     const tag = el.localName.toLowerCase();
+    if (tag === "img" || tag === "svg") return image(el, tag);
+    if (tag === "table") {
+      anchors(el); el.querySelectorAll("[id], a[name]").forEach(anchors);
+      const tb = tableBlock(el);
+      if (tb && tb.rows.length === 1 && tb.rows[0].length === 1) { if (tb.x) push({ t: "p", x: tb.rows[0][0].x.replace(/\n/g, " ") }); }   // tableau de mise en page d'une seule case
+      else if (tb) push(tb);
+      el.querySelectorAll("img, svg").forEach(i => {
+        const tg = i.localName.toLowerCase();
+        if (!(i.parentElement && i.parentElement.closest("svg"))) image(i, tg);
+      });
+      return;
+    }
+    if (tag === "figure") {
+      // légende gardée avec l'image ; tout autre contenu lu normalement
+      const capEl = [...el.children].find(c => c.localName.toLowerCase() === "figcaption");
+      const cap = capEl ? norm(capEl.textContent) : "";
+      const before = [];
+      const saved = push;
+      let first = null;
+      const sub = x => { before.push(x); if (!first && x.t === "img") first = x; };
+      anchors(el);
+      for (const c of el.children) if (c !== capEl) { push = sub; walk(c); push = saved; }
+      push = saved;
+      if (first && cap) first.cap = cap;
+      for (const x of before) push(x);
+      if (cap && !first) push({ t: "p", x: cap });
+      return;
+    }
     if (SKIP.test(tag)) { anchors(el); return; }
     if (tag === "pre") { anchors(el); const x = (el.textContent || "").replace(/\s+$/, ""); if (x.trim()) push({ t: "pre", x }); return; }
     if (/^h[1-6]$/.test(tag)) return textBlock(el, "h", +tag[1]);
@@ -166,12 +300,14 @@ function epubTokens(doc, path, push) {
       return textBlock(el, "p");
     }
     anchors(el);
-    let buf = "";
-    const flush = () => { const x = norm(buf); if (x) push({ t: tag === "li" ? "li" : "p", x }); buf = ""; };
+    let buf = "", cont = false;
+    // cont : texte qui suit une image placée dans la phrase (recollé au texte d'avant si l'image est écartée)
+    const flush = () => { const x = norm(buf); if (x) push(cont ? { t: tag === "li" ? "li" : "p", x, cont: 1 } : { t: tag === "li" ? "li" : "p", x }); buf = ""; cont = false; };
     for (const n of el.childNodes) {
       if (n.nodeType === 3) buf += n.nodeValue;
       else if (n.nodeType === 1) {
-        if (BLOCKS.test(n.localName.toLowerCase()) || SKIP.test(n.localName.toLowerCase())) { flush(); walk(n); }
+        const nm = n.localName.toLowerCase();
+        if (BLOCKS.test(nm) || SKIP.test(nm) || hasImg(n)) { flush(); walk(n); cont = !BLOCKS.test(nm) && hasImg(n) || nm === "img" || nm === "svg"; }
         else { n.querySelectorAll && [n, ...n.querySelectorAll("[id], a[name]")].forEach(anchors); buf += n.textContent; }
       }
     }
@@ -240,7 +376,42 @@ async function parseEpub(file, onStep, t) {
     epubTokens(parseXml(src, true), spine[i], x => tokens.push(x));
   }
   const fulltext = tokens.filter(x => x.x).map(x => x.x).join(" ");
-  if (fulltext.length < 50) throw new Error(t("noText"));
+  const imgs = tokens.filter(x => x.t === "img");
+  if (fulltext.length < 50 && !imgs.length) throw new Error(t("noText"));
+
+  // Images du livre : réduites (1200 px de large au plus) et gardées dans le texte du chapitre
+  const typeOf = new Map([...items.values()].map(x => [x.path, x.type]));
+  const done = new Map();
+  for (let i = 0; i < imgs.length; i++) {
+    const im = imgs[i];
+    onStep && onStep(i + 1, imgs.length, "img");
+    const k = im.ref || im.data || im.svg;
+    if (!done.has(k)) {
+      let blob = null;
+      try {
+        if (im.ref) {
+          const f = entry(im.ref);
+          const ext = (im.ref.split(".").pop() || "").toLowerCase();
+          const type = typeOf.get(im.ref) || { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", gif: "image/gif", webp: "image/webp", svg: "image/svg+xml" }[ext] || "";
+          if (f && /^image\//.test(type)) blob = new Blob([await f.async("uint8array")], { type });
+        } else if (im.data) blob = await (await fetch(im.data)).blob();
+        else if (im.svg) blob = new Blob([im.svg], { type: "image/svg+xml" });
+      } catch { blob = null; }
+      done.set(k, blob ? await shrink(blob) : null);
+    }
+    const r = done.get(k);
+    delete im.ref; delete im.data; delete im.svg;
+    if (r) Object.assign(im, r);
+  }
+  // images écartées (trop petites, illisibles) retirées ; une phrase coupée par l'une d'elles est recollée
+  for (let i = tokens.length - 1; i >= 0; i--) {
+    const tk = tokens[i];
+    if (tk.t !== "img" || tk.src) continue;
+    const a = tokens[i - 1], z = tokens[i + 1];
+    if (a && z && z.cont && a.t === z.t && (a.t === "p" || a.t === "li")) { a.x = a.x + " " + z.x; tokens.splice(i, 2); }
+    else tokens.splice(i, 1);
+  }
+  for (const tk of tokens) delete tk.cont;
 
   const modes = {};
   const entries = pickLevel(tree.filter(e => e.title || e.children.length)).filter(e => e.path);
@@ -261,7 +432,7 @@ async function parseEpub(file, onStep, t) {
         }
         continue;
       }
-      cur.blocks.push({ t: tk.t, x: tk.x });
+      cur.blocks.push(tk);
     }
     if (chs[0].front && blocksLen(chs[0].blocks) < 1500) chs.shift();
     return chs.length >= 2 ? chs : null;
@@ -278,7 +449,7 @@ async function parseEpub(file, onStep, t) {
         if (!cur.front && !cur.blocks.length) { cur.section = cur.title; cur.title = tk.x; continue; }
         cur = { title: tk.x, section: null, blocks: [] }; chs.push(cur); continue;
       }
-      cur.blocks.push({ t: tk.t, x: tk.x });
+      cur.blocks.push(tk);
     }
     if (blocksLen(chs[0].blocks) < 1500) chs.shift();
     return chs;
@@ -293,7 +464,7 @@ async function parseEpub(file, onStep, t) {
       }
       if (tk.a || !cur) continue;
       if (!cur.title && tk.t === "h") cur.title = tk.x;
-      cur.blocks.push({ t: tk.t, x: tk.x });
+      cur.blocks.push(tk);
     }
     chs.forEach((c, i) => { if (!c.title) c.title = `${t("section")} ${i + 1}`; });
     return chs;

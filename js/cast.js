@@ -424,6 +424,21 @@ function tvChapter(ci, k = 0) {
   const blocks = (ch.blocks || []).map((bl, i) => {
     for (const s of bl.s || []) if (String(s).trim()) P.segs.push({ b: i, txt: String(s) });
     if (bl.k === "h1" && head < 0) { head = i; return ""; }
+    if (bl.k === "img") {
+      // image envoyée plus tard (chapitre éloigné) : place réservée, remplie quand le chapitre complet arrive
+      const ok = typeof bl.src === "string" && /^data:image\/(png|jpe?g|webp|gif);base64,/.test(bl.src);
+      return `<figure class="cast-fig" data-b="${i}">${ok ? `<img src="${esc(bl.src)}" alt=""${bl.w ? ` width="${+bl.w}" height="${+bl.h}"` : ""}>` : `<div class="cast-fig-wait mono">🖼 …</div>`}`
+        + (bl.x ? `<figcaption>${esc(bl.x)}</figcaption>` : "") + "</figure>";
+    }
+    if (bl.k === "table") {
+      const rows = Array.isArray(bl.rows) ? bl.rows : [];
+      const cell = c => {
+        const tg = c && c.h ? "th" : "td", cs = Math.min(50, +(c && c.cs) || 1), rs = Math.min(200, +(c && c.rs) || 1);
+        return `<${tg}${cs > 1 ? ` colspan="${cs}"` : ""}${rs > 1 ? ` rowspan="${rs}"` : ""}>${esc(String((c && c.x) || "")).replace(/\n/g, "<br>")}</${tg}>`;
+      };
+      return `<div class="cast-table" data-b="${i}"><table>${bl.x ? `<caption>${esc(bl.x)}</caption>` : ""}<tbody>`
+        + rows.map(r => "<tr>" + (Array.isArray(r) ? r.map(cell).join("") : "") + "</tr>").join("") + "</tbody></table></div>";
+    }
     const tag = bl.k === "h1" ? "h2" : bl.k === "h3" ? "h3" : bl.k === "li" ? "p" : bl.k === "pre" ? "pre" : "p";
     return `<${tag} class="cast-b${bl.k === "li" ? " cast-li" : ""}" data-b="${i}">${esc(bl.x || "")}</${tag}>`;
   }).join("");
