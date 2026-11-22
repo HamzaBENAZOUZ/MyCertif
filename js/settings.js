@@ -16,6 +16,22 @@ function setXp(k, v) {
   try { localStorage.setItem(XP_KEY, JSON.stringify(o)); } catch { /* */ }
 }
 
+const FONT_KEY = "mycertif-font";
+export const FONT_SIZES = [0.9, 1, 1.15, 1.3, 1.5];
+/** Taille du texte de toute l'appli (1 = normale), appliquée par la variable CSS --ui-font. */
+export function fontScale() {
+  let v = 1;
+  try { v = parseFloat(localStorage.getItem(FONT_KEY)) || 1; } catch { v = 1; }
+  return FONT_SIZES.includes(v) ? v : 1;
+}
+export function setFontScale(v) {
+  v = FONT_SIZES.includes(+v) ? +v : 1;
+  try { if (v === 1) localStorage.removeItem(FONT_KEY); else localStorage.setItem(FONT_KEY, String(v)); } catch { /* */ }
+  if (v === 1) document.documentElement.style.removeProperty("--ui-font");
+  else document.documentElement.style.setProperty("--ui-font", v);
+  document.documentElement.classList.toggle("fs-big", v >= 1.3);   // très grand texte : une seule colonne sur téléphone
+}
+
 const TX = {
   fr: {
     title: "Paramètres", sub: "Voix, lecture à voix haute, mode express et affichage.",
@@ -33,6 +49,8 @@ const TX = {
     chain: "Enchaîner automatiquement le chapitre suivant", awake: "Garder l'écran allumé pendant l'écoute",
     xp: "// MODE EXPRESS", xpWait: "Temps pour répondre", xpNext: "Attente avant la question suivante",
     disp: "// AFFICHAGE", lang: "Langue de l'interface", theme: "Thème", dark: "Sombre", light: "Clair",
+    font: "Taille du texte", fontDesc: "Agrandit ou réduit tout le texte de l'application (sur ce téléphone, cette tablette ou cette télé).",
+    fonts: ["Petite", "Normale", "Grande", "Très grande", "Énorme"], fontPrev: "Aperçu : voici la taille des questions et des livres.",
     app: "// APPLICATION", ver: "Version", check: "Vérifier les mises à jour", upToDate: "L'application est à jour.", site: "site web",
   },
   en: {
@@ -51,6 +69,8 @@ const TX = {
     chain: "Automatically continue with the next chapter", awake: "Keep the screen on while listening",
     xp: "// EXPRESS MODE", xpWait: "Time to answer", xpNext: "Wait before the next question",
     disp: "// DISPLAY", lang: "Interface language", theme: "Theme", dark: "Dark", light: "Light",
+    font: "Text size", fontDesc: "Makes all the text in the app bigger or smaller (on this phone, tablet or TV).",
+    fonts: ["Small", "Normal", "Large", "Extra large", "Huge"], fontPrev: "Preview: this is the size of questions and books.",
     app: "// APPLICATION", ver: "Version", check: "Check for updates", upToDate: "The app is up to date.", site: "website",
   },
 };
@@ -127,6 +147,9 @@ export function renderSettings(ctx) {
         <h3 class="mono">${esc(T("disp"))}</h3>
         <div class="set-row"><span>${esc(T("lang"))}</span>${seg("ulang", [["fr", "Français"], ["en", "English"]], L)}</div>
         <div class="set-row"><span>${esc(T("theme"))}</span>${seg("theme", [["dark", T("dark")], ["light", T("light")]], ctx.theme())}</div>
+        <div class="set-row set-font"><span>${esc(T("font"))}</span>${seg("ufont", FONT_SIZES.map((x, i) => [x, TX[L].fonts[i]]), fontScale())}</div>
+        <p class="muted small">${esc(T("fontDesc"))}</p>
+        <p class="set-font-prev">${esc(T("fontPrev"))}</p>
       </section>
 
       <section class="panel set-sec">
@@ -162,6 +185,12 @@ export function renderSettings(ctx) {
     app.querySelectorAll("[data-xpnext]").forEach(b => b.onclick = () => { setXp("next", +b.dataset.xpnext); paint(); });
     app.querySelectorAll("[data-ulang]").forEach(b => b.onclick = () => { ctx.setLang(b.dataset.ulang); });
     app.querySelectorAll("[data-theme]").forEach(b => b.onclick = () => { ctx.setTheme(b.dataset.theme); paint(); });
+    app.querySelectorAll("[data-ufont]").forEach(b => b.onclick = () => {
+      const y = b.getBoundingClientRect().top;          // garde le bouton sous le doigt après le changement de taille
+      setFontScale(+b.dataset.ufont); paint();
+      const nb = app.querySelector(`[data-ufont="${b.dataset.ufont}"]`);
+      if (nb) { window.scrollBy(0, nb.getBoundingClientRect().top - y); nb.focus({ preventScroll: true }); }
+    });
     const up = app.querySelector("#set-upd");
     if (up) up.onclick = async () => { up.disabled = true; const newer = await ctx.checkUpdate(); up.disabled = false; if (!newer) ctx.toast(T("upToDate"), "ok"); };
   };
