@@ -1203,6 +1203,9 @@ body.bk-th-night .bk-content img { filter: brightness(.88); }
 html.tv .bk-sheet { width: min(620px, 60vw); }
 html.tv .bk-foot p { font-size: .8rem; }
 html.tv .bk-reader { max-width: min(var(--bk-mw, 760px) * 1.25, 100%); }
+
+/* Marges « Aucune » (par défaut sur tablette en paysage) : le texte occupe toute la largeur de l'écran (3.23) */
+body.bk-full main.container { max-width: none; }
 html.tv .bk-selmenu { display: none; }
 @media (max-width: 640px) { .bk-foot { padding-top: 6px; background: color-mix(in srgb, var(--bg) 92%, transparent); } }
 
