@@ -17,6 +17,8 @@ const PKEY = "splunk-books-v1", PREF = "splunk-books-prefs", DL = "splunk-books-
 const WPM_READ = 220, WPM_LISTEN = 155;
 const RATE_MIN = 0.5, RATE_MAX = 2.5, RATE_STEP = 0.1;
 const RATE_PRESETS = [0.75, 1, 1.25, 1.5, 2];
+// Taille du texte des livres seulement (l'interface de l'appli ne change pas)
+const BF_MIN = 0.8, BF_MAX = 2.5, BF_PRE = [1, 1.25, 1.5, 1.75, 2, 2.5];
 
 const L = {
   fr: {
@@ -91,6 +93,7 @@ const L = {
     face: "Police", f_sans: "Sans", f_serif: "Serif", lh: "Interligne", lh_s: "Serré", lh_m: "Normal", lh_l: "Aéré",
     mw: "Marges", mw_s: "Étroites", mw_m: "Normales", mw_l: "Larges", justify: "Texte justifié",
     turn: "Tourner les pages", turn_scroll: "Défilement", turn_pages: "Pages", turnHint: "Mode Pages : touche le bord droit ou gauche, ou glisse le doigt, pour tourner une page (télécommande : flèches gauche / droite ou Chaîne +/−).",
+    bfT: "Taille du texte du livre", bfHint: "Seul le texte du livre change : l'appli garde sa taille. Astuce : pince l'écran avec deux doigts pour zoomer le texte.", bfSmall: "Texte plus petit", bfBig: "Texte plus grand",
     resumed: "Repris là où tu t'étais arrêté ({p} %)", toStart: "Revenir au début", nextPage: "Page suivante", prevPage: "Page précédente",
   },
   en: {
@@ -164,6 +167,7 @@ const L = {
     face: "Font", f_sans: "Sans", f_serif: "Serif", lh: "Line spacing", lh_s: "Tight", lh_m: "Normal", lh_l: "Airy",
     mw: "Margins", mw_s: "Narrow", mw_m: "Normal", mw_l: "Wide", justify: "Justified text",
     turn: "Page turning", turn_scroll: "Scroll", turn_pages: "Pages", turnHint: "Pages mode: tap the right or left edge, or swipe, to turn a page (remote: left / right arrows or Channel +/−).",
+    bfT: "Book text size", bfHint: "Only the book's text changes: the app keeps its size. Tip: pinch the screen with two fingers to zoom the text.", bfSmall: "Smaller text", bfBig: "Bigger text",
     resumed: "Picked up where you left off ({p}%)", toStart: "Back to the start", nextPage: "Next page", prevPage: "Previous page",
   },
 };
@@ -260,6 +264,38 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     return m < 1 ? t("justNow") : m < 60 ? t("agoM", { n: m }) : m < 1440 ? t("agoH", { n: Math.round(m / 60) }) : t("agoD", { n: Math.round(m / 1440) });
   };
   const pctTxt = x => Math.round(x * 100);
+  const clampBf = v => Math.round(Math.min(BF_MAX, Math.max(BF_MIN, +v || 1)) * 100) / 100;
+  prefs.font = clampBf(prefs.font);
+  /** Réglage de la taille du texte du livre (panneau ⚙, panneau Aa) : −, curseur, +, tailles toutes prêtes. */
+  const bfCtl = () => `<div class="bk-bf">
+      <span class="mono muted">${esc(t("bfT"))} : <strong class="bk-bf-v">${pctTxt(prefs.font)} %</strong></span>
+      <div class="row bk-bf-row">
+        <button class="btn btn-ghost bk-bf-btn" data-bf="-1" title="${esc(t("bfSmall"))}" aria-label="${esc(t("bfSmall"))}"><span style="font-size:.8em">A</span>−</button>
+        <input type="range" class="bk-bf-range" min="${BF_MIN}" max="${BF_MAX}" step="0.05" value="${prefs.font}" aria-label="${esc(t("bfT"))}">
+        <button class="btn btn-ghost bk-bf-btn" data-bf="1" title="${esc(t("bfBig"))}" aria-label="${esc(t("bfBig"))}"><span style="font-size:1.25em">A</span>+</button>
+      </div>
+      <div class="row bk-set-pre">${BF_PRE.map(x => `<button class="seg-btn mono" data-bfp="${x}" aria-pressed="${x === prefs.font}">${pctTxt(x)} %</button>`).join("")}</div>
+      <p class="muted bk-look-hint">${esc(t("bfHint"))}</p>
+    </div>`;
+  /** Change la taille du texte du livre ; le passage lu reste à sa place à l'écran. */
+  function setBookFont(v, save = true) {
+    v = clampBf(v);
+    const rd0 = document.querySelector(".bk-reader");
+    const keep = readerTop && readerTop(), y0 = keep ? keep.getBoundingClientRect().top : 0;
+    prefs.font = v;
+    if (rd0) rd0.style.setProperty("--bk-font", v);
+    if (keep && keep.isConnected) scrollBy(0, keep.getBoundingClientRect().top - y0);
+    document.querySelectorAll(".bk-bf-v").forEach(x => { x.textContent = pctTxt(v) + " %"; });
+    document.querySelectorAll(".bk-bf-range").forEach(x => { if (+x.value !== v) x.value = v; });
+    document.querySelectorAll("[data-bfp]").forEach(x => x.setAttribute("aria-pressed", String(+x.dataset.bfp === v)));
+    if (save) savePrefs();
+  }
+  document.addEventListener("click", e => {
+    const x = e.target.closest("[data-bf], [data-bfp]"); if (!x) return;
+    setBookFont(x.dataset.bfp ? +x.dataset.bfp : prefs.font + 0.1 * +x.dataset.bf);
+  });
+  document.addEventListener("input", e => { if (e.target.classList && e.target.classList.contains("bk-bf-range")) setBookFont(+e.target.value, false); });
+  document.addEventListener("change", e => { if (e.target.classList && e.target.classList.contains("bk-bf-range")) setBookFont(+e.target.value); });
 
   /* ---------------- données ---------------- */
   async function fetchLocal() {
@@ -1126,8 +1162,9 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
               title="${esc(ch.html_fr ? "Français" : canTr ? t("tr") : t("trNo"))}">FR${ch.html_fr ? "" : " 🌐"}</button>
           </div>`}
           <div class="seg" role="group" aria-label="${esc(t("font"))}">
-            <button class="seg-btn mono" data-font="-1" title="${esc(t("font"))}">A−</button>
-            <button class="seg-btn mono" data-font="1" title="${esc(t("font"))}">A+</button>
+            <button class="seg-btn mono" data-bf="-1" title="${esc(t("bfSmall"))}" aria-label="${esc(t("bfSmall"))}">A−</button>
+            <span class="seg-lab mono bk-bf-v" title="${esc(t("bfT"))}">${pctTxt(prefs.font)} %</span>
+            <button class="seg-btn mono" data-bf="1" title="${esc(t("bfBig"))}" aria-label="${esc(t("bfBig"))}">A+</button>
           </div>
           ${(w => `<span class="bk-eta mono" data-w="${w}">${etaHtml(w)}</span>`)(countWords(html))}
           ${tvNow ? `<button class="btn btn-primary btn-sm" id="bk-tvlisten">📺 ${esc(t("tvListen", { n: tvNow.name || "TV" }))}</button>` : ""}
@@ -1155,6 +1192,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     <section class="bk-set panel" id="bk-set" hidden role="dialog" aria-label="${esc(t("settings"))}">
       <div class="bk-set-head"><h3 class="mono">⚙ ${esc(t("settings"))}</h3>
         <button class="icon-btn" data-set="close" title="${esc(t("close"))}" aria-label="${esc(t("close"))}">✕</button></div>
+      ${bfCtl()}
       <label class="bk-set-f"><span class="mono muted" id="bk-voice-lab"></span>
         <span class="row bk-set-voice"><select id="bk-voice"></select>
         <button class="btn btn-ghost btn-sm" data-set="try">🔊 ${esc(t("tryV"))}</button></span></label>
@@ -1193,12 +1231,6 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     if (trb) trb.onclick = () => { (prefs.tr ||= {})[b.id] = !trOn; savePrefs(); renderChapter(b, ch); };
     root.querySelectorAll("[data-voice]").forEach(btn => btn.onclick = () => {
       (prefs.voice ||= {})[b.id] = btn.dataset.voice; savePrefs(); renderChapter(b, ch);
-    });
-    root.querySelectorAll("[data-font]").forEach(btn => btn.onclick = () => {
-      const keep = readerTop && readerTop(), y0 = keep ? keep.getBoundingClientRect().top : 0;
-      prefs.font = Math.min(1.5, Math.max(0.85, Math.round((prefs.font + 0.1 * +btn.dataset.font) * 100) / 100)); savePrefs();
-      root.querySelector(".bk-reader").style.setProperty("--bk-font", prefs.font);
-      if (keep) scrollBy(0, keep.getBoundingClientRect().top - y0);        // le passage lu reste en place
     });
     const mark = () => { if (!rec(b.id, n).r) { rec(b.id, n).r = Date.now(); saveP(b.id, n); } };
     root.querySelector(".bk-content").addEventListener("click", e => {
@@ -1492,6 +1524,17 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       if (Date.now() - tx.t < 700 && Math.abs(dx) > 60 && Math.abs(dx) > 1.6 * Math.abs(dy)) { const s = getSelection(); if (!s || s.isCollapsed) page(dx < 0 ? 1 : -1); }
       tx = null;
     }, { passive: true, ...sig });
+    // pincer avec deux doigts : agrandit ou réduit le texte du livre seulement
+    let pinch = null, pinchRaf = 0;
+    const dist = ts => Math.hypot(ts[0].clientX - ts[1].clientX, ts[0].clientY - ts[1].clientY);
+    art.addEventListener("touchstart", e => { if (e.touches.length === 2) { pinch = { d: dist(e.touches), f: prefs.font }; tx = null; } }, { passive: true, ...sig });
+    art.addEventListener("touchmove", e => {
+      if (!pinch || e.touches.length !== 2) return;
+      e.preventDefault();                                   // pas de zoom de toute la page
+      const f = pinch.f * dist(e.touches) / pinch.d;
+      if (!pinchRaf) pinchRaf = requestAnimationFrame(() => { pinchRaf = 0; setBookFont(Math.round(f * 20) / 20, false); });
+    }, { passive: false, ...sig });
+    art.addEventListener("touchend", e => { if (pinch && e.touches.length < 2) { pinch = null; savePrefs(); blocks = null; onScroll(); } }, { passive: true, ...sig });
     addEventListener("keydown", e => {
       if (e.altKey || e.ctrlKey || e.metaKey || document.querySelector(".bk-sheet-ov, .bk-modal-ov, .bk-zoom")) return;
       const tg = e.target; if (tg && tg.matches && tg.matches("input, textarea, select")) return;
@@ -1553,8 +1596,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
         <div class="bk-sheet-head"><h3 class="mono">Aa ${esc(t("look"))}</h3><button class="icon-btn" data-sh="close" aria-label="${esc(t("close"))}" title="${esc(t("close"))}">✕</button></div>
         <div class="bk-look-f"><span class="mono muted">${esc(t("theme"))}</span><div class="bk-themes">${THEMES.map(x =>
           `<button class="bk-thb bk-thb-${x}" data-look="theme" data-val="${x}" aria-pressed="${(prefs.theme || "auto") === x}"><span>Aa</span>${esc(t("th_" + x))}</button>`).join("")}</div></div>
-        <div class="bk-look-f"><span class="mono muted">${esc(t("font"))} : <strong id="bk-look-fs">${pctTxt(prefs.font)} %</strong></span>
-          <div class="seg" role="group"><button class="seg-btn mono" data-look="font" data-val="-1">A−</button><button class="seg-btn mono" data-look="font" data-val="1">A+</button></div></div>
+        ${bfCtl()}
         <div class="bk-look-f"><span class="mono muted">${esc(t("face"))}</span>${segs("serif", [[0, t("f_sans")], [1, t("f_serif")]], prefs.serif ? 1 : 0)}</div>
         <div class="bk-look-f"><span class="mono muted">${esc(t("lh"))}</span>${segs("lh", [["s", t("lh_s")], ["m", t("lh_m")], ["l", t("lh_l")]], prefs.lh || "m")}</div>
         <div class="bk-look-f"><span class="mono muted">${esc(t("mw"))}</span>${segs("mw", [["s", t("mw_s")], ["m", t("mw_m")], ["l", t("mw_l")]], prefs.mw || "m")}</div>
@@ -1566,13 +1608,8 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
         const x = e.target.closest("[data-look]"); if (!x) return;
         const k = x.dataset.look, val = x.dataset.val;
         const keep = cur();                          // le texte en haut de l'écran reste en place quand la mise en page change
-        if (k === "font") {
-          prefs.font = Math.min(1.5, Math.max(0.85, Math.round((prefs.font + 0.1 * +val) * 100) / 100));
-          ov.querySelector("#bk-look-fs").textContent = pctTxt(prefs.font) + " %";
-        } else {
-          prefs[k] = k === "serif" ? !!+val : val;
-          ov.querySelectorAll(`[data-look="${k}"]`).forEach(y => y.setAttribute("aria-pressed", String(y === x)));
-        }
+        prefs[k] = k === "serif" ? !!+val : val;
+        ov.querySelectorAll(`[data-look="${k}"]`).forEach(y => y.setAttribute("aria-pressed", String(y === x)));
         savePrefs(); applyLook(reader); blocks = null; scrollToBlock(keep.i, keep.o); onScroll();
       });
       ov.querySelector("#bk-just").onchange = e => { prefs.justify = e.target.checked; savePrefs(); applyLook(reader); };
@@ -2136,6 +2173,6 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   return { render, sync, forget, stop,
     // onglet Paramètres : mêmes préférences de lecture que le lecteur
     prefs: () => prefs, RATES: RATE_PRESETS, GAPS,
-    setPref: (k, v) => { prefs[k] = k === "rate" ? clampRate(v) : v; savePrefs(); },
+    setPref: (k, v) => { prefs[k] = k === "rate" ? clampRate(v) : k === "font" ? clampBf(v) : v; savePrefs(); }, BF_PRE,
     setVoice: (lang, id) => { prefs.vname[lang] = id || ""; savePrefs(); } };
 }

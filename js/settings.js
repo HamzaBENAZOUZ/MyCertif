@@ -51,6 +51,7 @@ const TX = {
     disp: "// AFFICHAGE", lang: "Langue de l'interface", theme: "Thème", dark: "Sombre", light: "Clair",
     font: "Taille du texte", fontDesc: "Agrandit ou réduit tout le texte de l'application (sur ce téléphone, cette tablette ou cette télé).",
     fonts: ["Petite", "Normale", "Grande", "Très grande", "Énorme"], fontPrev: "Aperçu : voici la taille des questions et des livres.",
+    bfont: "Taille du texte des livres", bfontDesc: "Agrandit seulement le texte des livres, pas l'appli. Aussi réglable dans le livre (A− / A+, ⚙ ou Aa) ou en pinçant l'écran.",
     app: "// APPLICATION", ver: "Version", check: "Vérifier les mises à jour", upToDate: "L'application est à jour.", site: "site web",
   },
   en: {
@@ -71,6 +72,7 @@ const TX = {
     disp: "// DISPLAY", lang: "Interface language", theme: "Theme", dark: "Dark", light: "Light",
     font: "Text size", fontDesc: "Makes all the text in the app bigger or smaller (on this phone, tablet or TV).",
     fonts: ["Small", "Normal", "Large", "Extra large", "Huge"], fontPrev: "Preview: this is the size of questions and books.",
+    bfont: "Book text size", bfontDesc: "Makes only the books' text bigger, not the app. Also adjustable inside a book (A− / A+, ⚙ or Aa) or by pinching the screen.",
     app: "// APPLICATION", ver: "Version", check: "Check for updates", upToDate: "The app is up to date.", site: "website",
   },
 };
@@ -150,6 +152,8 @@ export function renderSettings(ctx) {
         <div class="set-row set-font"><span>${esc(T("font"))}</span>${seg("ufont", FONT_SIZES.map((x, i) => [x, TX[L].fonts[i]]), fontScale())}</div>
         <p class="muted small">${esc(T("fontDesc"))}</p>
         <p class="set-font-prev">${esc(T("fontPrev"))}</p>
+        <div class="set-row set-font"><span>${esc(T("bfont"))}</span>${seg("bfont", B.BF_PRE.map(x => [x, Math.round(x * 100) + " %"]), P.font)}</div>
+        <p class="muted small">${esc(T("bfontDesc"))}</p>
       </section>
 
       <section class="panel set-sec">
@@ -185,6 +189,7 @@ export function renderSettings(ctx) {
     app.querySelectorAll("[data-xpnext]").forEach(b => b.onclick = () => { setXp("next", +b.dataset.xpnext); paint(); });
     app.querySelectorAll("[data-ulang]").forEach(b => b.onclick = () => { ctx.setLang(b.dataset.ulang); });
     app.querySelectorAll("[data-theme]").forEach(b => b.onclick = () => { ctx.setTheme(b.dataset.theme); paint(); });
+    app.querySelectorAll("[data-bfont]").forEach(b => b.onclick = () => { B.setPref("font", +b.dataset.bfont); paint(); });
     app.querySelectorAll("[data-ufont]").forEach(b => b.onclick = () => {
       const y = b.getBoundingClientRect().top;          // garde le bouton sous le doigt après le changement de taille
       setFontScale(+b.dataset.ufont); paint();
