@@ -3,7 +3,7 @@
   "versionName": "3.27",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Android Auto : le livre que tu lis sur le téléphone apparaît en tête de l'onglet « En cours », au bon chapitre, avec le pourcentage lu. En le touchant dans la voiture, la lecture reprend à l'endroit où tu t'es arrêté sur le téléphone.",
-    "en": "Android Auto: the book you're reading on the phone now shows first in the “Now playing” tab, at the right chapter, with the percentage read. Tapping it in the car resumes where you stopped on the phone."
+    "fr": "Android Auto : le livre que tu lis ou écoutes sur le téléphone apparaît en tête de l'onglet « En cours », au bon chapitre, et la voiture reprend à la phrase où tu t'es arrêté. Les chapitres déjà traduits en français dans l'appli sont lus traduits dans la voiture (mis à jour dès qu'une traduction se termine).",
+    "en": "Android Auto: the book you're reading or listening to on the phone shows first in the “Now playing” tab, at the right chapter, and the car resumes at the sentence where you stopped. Chapters already translated into French in the app are read translated in the car (updated as soon as a translation finishes)."
   }
 }
