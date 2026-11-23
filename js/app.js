@@ -308,6 +308,66 @@ function books() {
   if (!state.books) state.books = createBooks({ store: state.store, getLang, esc, toast, userId: () => state.session?.user?.id, tts: TTS });
   return state.books;
 }
+// ------------------------------------------------------------------ Android Auto : les certifications en quiz audio
+// Chaque certification devient un dossier dans la voiture (« cert-<section> »), chaque chapitre un quiz écouté :
+// la question et ses propositions, un temps pour réfléchir, puis la bonne réponse et l'explication.
+const CAR_CERT = {
+  guide: { fr: "Splunk Core Certified User (SPLK-1001)", en: "Splunk Core Certified User (SPLK-1001)" },
+  practice: { fr: "Splunk Core Power User (SPLK-1002)", en: "Splunk Core Power User (SPLK-1002)" },
+  aws: { fr: "AWS Solutions Architect Associate (SAA-C03)", en: "AWS Solutions Architect Associate (SAA-C03)" },
+  ceh: { fr: "Certified Ethical Hacker (CEH)", en: "Certified Ethical Hacker (CEH)" },
+};
+const CAR_PAUSE = "@pause:5000";        // temps pour réfléchir avant la réponse (lu par AutoService)
+/** Nom parlé d'un chapitre : « Chapitre 3 », « Module 7 », « Thème 2 », « Examen blanc ». */
+function carChLabel(id, fr) {
+  if (id === 300 || id === 200) return fr ? "Examen blanc" : "Practice exam";
+  if (id > 300) return (fr ? "Chapitre " : "Chapter ") + (id - 300);
+  if (id > 200) return (fr ? "Chapitre " : "Chapter ") + (id - 200);
+  if (id > 100) return (fr ? "Thème " : "Topic ") + (id - 100);
+  if (id > 10) return (fr ? "Thème " : "Topic ") + (id - 10);
+  return "Module " + id;
+}
+function carHash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); }
+function carCourses() {
+  const c = window.AndroidCar; if (!c || !state.questions.length || books().prefs().carAuto === false) return;
+  const ui = getLang() === "fr" ? "fr" : "en";
+  for (const sec of SECTIONS) {
+    const id = "cert-" + sec;
+    const chs = state.chapters.filter(ch => secOf(ch.id) === sec).sort((a, b) => a.id - b.id);
+    if (!chs.length || isArchived(sec)) { try { if (c.bookVersion(id)) c.removeBook(id); } catch { /* */ } continue; }
+    const title = CAR_CERT[sec][ui], out = [];
+    for (const ch of chs) {
+      const qs = state.questions.filter(q => q.chapter_id === ch.id).sort((a, b) => a.id - b.id);
+      if (!qs.length) continue;
+      const lang = ui === "fr" && qs.some(hasFr) ? "fr" : "en", fr = lang === "fr";
+      const ear = x => forEar(String(x || "").replace(/\s+/g, " ").trim(), lang);
+      const label = carChLabel(ch.id, ui === "fr"), name = chTitle(ch) || label, nq = `${qs.length} question${qs.length > 1 ? "s" : ""}`;
+      const segs = [ear(`${title}. ${carChLabel(ch.id, fr)} : ${name}. ${nq}.`)];
+      qs.forEach((q, k) => {
+        const x = qText(q, lang);
+        segs.push(ear(`Question ${k + 1} ${fr ? "sur" : "of"} ${qs.length}.`));
+        if (x.scenario) segs.push(ear(x.scenario));
+        segs.push(ear(x.question));
+        x.options.forEach((o, j) => segs.push(ear(`${letter(j)}${fr ? " :" : ":"} ${o}`)));
+        segs.push(CAR_PAUSE);
+        const ok = [].concat(q.correct).map(L => `${L}${fr ? " :" : ":"} ${x.options[String(L).charCodeAt(0) - 65] || ""}`);
+        segs.push(ear(`${fr ? (ok.length > 1 ? "Bonnes réponses" : "Bonne réponse") : (ok.length > 1 ? "Correct answers" : "Correct answer")}. ${ok.join(". ")}.`));
+        if (x.explanation) segs.push(ear(x.explanation));
+      });
+      const words = segs.reduce((n, s) => n + (s.startsWith("@") ? 0 : (s.match(/\S+/g) || []).length), 0);
+      out.push({ n: ch.id, title: name, sub: `${label} · ${nq}`, label, lang, segs, words });
+    }
+    if (!out.length) continue;
+    const ver = carHash(JSON.stringify(out.map(x => [x.n, x.title, x.segs]))) + "~" + ui;
+    try {
+      if (c.bookVersion(id) === ver) continue;
+      for (const x of out) if (!c.saveChapter(id, x.n, JSON.stringify({ n: x.n, title: x.title, lang: x.lang, segs: x.segs }))) throw new Error("car");
+      c.saveBook(JSON.stringify({ id, kind: "cert", title, author: "MyCertif", version: ver, cover: "",
+        chapters: out.map(x => ({ n: x.n, title: x.title, sub: x.sub, label: x.label, words: x.words })) }));
+    } catch (e) { console.warn("voiture", sec, e); }
+  }
+}
+
 function renderSettingsView() {
   stopTimer();
   state.view = "settings";
@@ -504,6 +564,7 @@ async function start() {
     await refreshProgress();
     suivi().sync(true);
     books().sync();
+    if (window.AndroidCar) setTimeout(() => { carCourses(); books().carSyncAll(); }, 2500);   // Android Auto : cours et livres prêts dans la voiture
     applyStaticTexts();
     // Application Android : tout est téléchargé automatiquement pour pouvoir réviser hors ligne.
     if (IN_APP && state.store.kind === "supabase" && !state.store.offline && !offlineEnabled()) {

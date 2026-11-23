@@ -466,7 +466,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     const c = car(); if (!c) return;
     try { c.settings(JSON.stringify({ rate: prefs.rate, voice: prefs.vname || {}, chain: prefs.chain, gap: Math.round((+prefs.gap || 0) * 1000) })); } catch { /* ancienne appli */ }
   }
-  const carV = b => String(b.version || "") + "~" + SPEECH_V;      // texte adapté à l'écoute : nouvelles règles = livre à renvoyer
+  const carV = b => String(b.version || "") + "~" + SPEECH_V + "~" + (upl(b) ? voiceOf(b) : cLang());      // texte adapté à l'écoute : nouvelles règles = livre à renvoyer
   const carVersion = b => { const c = car(); try { return c ? c.bookVersion(b.id) || "" : ""; } catch { return ""; } };
   /**
    * Case de tableau à lire ? Non si elle contient des paragraphes (lus un par un), si elle est vide ou si ce n'est
@@ -496,8 +496,35 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     });
     return out;
   }
-  async function sendToCar(b, onStep) {
+  // Livres retirés de la voiture à la main : la préparation automatique ne les renvoie plus (jusqu'au prochain envoi manuel).
+  const SKIP = "mycertif-car-skip";
+  const carSkip = () => { const a = rdj(SKIP); return Array.isArray(a) ? a : []; };
+  const setSkip = (id, on) => { const a = carSkip().filter(x => x !== id); if (on) a.push(id); wrj(SKIP, a); };
+  function carRemove(id) { const c = car(); if (!c) return; try { c.removeBook(id); } catch { /* */ } setSkip(id, true); }
+  /**
+   * Android Auto : prépare tous les livres de la bibliothèque (texte découpé en phrases, gardé dans l'appli),
+   * en arrière-plan et un livre à la fois, seulement s'ils sont absents ou ont changé depuis.
+   */
+  let carSyncing = false;
+  async function carSyncAll() {
+    const c = car();
+    if (!c || carSyncing || prefs.carAuto === false || !userId()) return;
+    carSyncing = true;
+    try {
+      const all = await loadLib(), skip = new Set(carSkip());
+      for (const b of all) {
+        if (skip.has(b.id) || !b.chapters || !b.chapters.length || carVersion(b) === carV(b)) continue;
+        if (store.offline && !downloaded(b)) continue;
+        try { await sendToCar(b, null, true); } catch (e) { console.warn("voiture", b.id, e); }
+        await new Promise(r => setTimeout(r, 300));
+      }
+      carSettings();
+    } catch (e) { console.warn("voiture", e); }
+    finally { carSyncing = false; }
+  }
+  async function sendToCar(b, onStep, auto = false) {
     const c = car(); if (!c) return;
+    if (!auto) setSkip(b.id, false);
     const u = upl(b), want = u ? voiceOf(b) : cLang(), chs = [];
     for (let i = 0; i < b.chapters.length; i++) {
       onStep && onStep(i + 1, b.chapters.length);
@@ -945,7 +972,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       renderBook(b);
     };
     const cr = root.querySelector("#bk-car-rm");
-    if (cr) cr.onclick = () => { try { car().removeBook(b.id); toast(t("carRmOk"), "ok"); } catch { /* */ } renderBook(b); };
+    if (cr) cr.onclick = () => { carRemove(b.id); toast(t("carRmOk"), "ok"); renderBook(b); };
     // bouton 📺 du haut : envoie le livre (à partir du prochain chapitre à lire)
     if (canCast() && (canDl || downloaded(b))) setCastAction({ label: t("tvBook", { t: pick(b, "title", ul) }), run: btn => toTv(b, n, btn) });
     if (upl(b)) bookSource(b);
@@ -2210,7 +2237,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   }
   const nextOf = (b, n) => { const i = b.chapters.findIndex(c => c.n === n); return b.chapters[i + 1] && b.chapters[i + 1].n; };
 
-  return { render, sync, forget, stop,
+  return { render, sync, forget, stop, carSyncAll,
     // onglet Paramètres : mêmes préférences de lecture que le lecteur
     prefs: () => prefs, RATES: RATE_PRESETS, GAPS,
     setPref: (k, v) => { prefs[k] = k === "rate" ? clampRate(v) : k === "font" ? clampBf(v) : v; savePrefs(); }, BF_PRE,
