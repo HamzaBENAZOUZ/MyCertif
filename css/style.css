@@ -1221,3 +1221,5 @@ html.tv .bk-selmenu { display: none; }
 .bk-bf .bk-set-pre .seg-btn[aria-pressed="true"] { background: var(--grad); color: #fff; border-color: transparent; }
 .bk-look-ov .bk-bf { border-bottom: 0; padding-bottom: 0; }
 .bk-tools .bk-bf-v { min-width: 3.4em; text-align: center; font-size: .78rem; }
+/* « Lire sur ma voiture » actif : le son passe par la voiture */
+.bk-player .bk-pl-car[aria-pressed="true"], #bk-carsay[aria-pressed="true"] { background: var(--grad); color: #fff; border-color: transparent; }
