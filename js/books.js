@@ -78,6 +78,7 @@ const L = {
     car: "Écouter dans la voiture (Android Auto)", carUpd: "Mettre à jour dans la voiture", carIn: "Dans la voiture",
     carBusy: "Envoi vers la voiture… {i}/{n}", carOk: "« {t} » est prêt dans Android Auto", carRm: "Retirer de la voiture",
     carRmOk: "Livre retiré d'Android Auto", carErr: "Envoi vers la voiture impossible", carRead: "{n} chapitre(s) écouté(s) en voiture marqué(s) comme lu(s)",
+    carSyncGo: "🚗 Préparation d'Android Auto : {n} livre(s), garde l'appli ouverte…", carSyncOne: "🚗 Android Auto : « {t} » est prêt ({i}/{n})", carSyncOk: "🚗 Android Auto est prêt : {n} livre(s) ajouté(s) ou mis à jour",
     tvListen: "Écouter sur {n}", phoneListen: "Sur le téléphone", tvBook: "Lire « {t} » sur la télé", tvCh: "Lire sur la télé à partir du chapitre {n}", tvBusy: "Préparation pour la télé… {i}/{n}", tvTrBg: "La télé lit déjà ; les chapitres suivants sont traduits en français sur le téléphone et lui sont envoyés au fur et à mesure.", tvRead: "{n} chapitre(s) écouté(s) sur la télé marqué(s) comme lu(s)",
     // 3.20 : bibliothèque et lecture façon liseuse
     resumeK: "Reprendre la lecture", resumeB: "Reprendre", lastRead: "Lu {w}", justNow: "à l'instant", agoM: "il y a {n} min", agoH: "il y a {n} h", agoD: "il y a {n} j",
@@ -153,6 +154,7 @@ const L = {
     car: "Listen in the car (Android Auto)", carUpd: "Update in the car", carIn: "In the car",
     carBusy: "Sending to the car… {i}/{n}", carOk: "“{t}” is ready in Android Auto", carRm: "Remove from the car",
     carRmOk: "Book removed from Android Auto", carErr: "Could not send to the car", carRead: "{n} chapter(s) listened to in the car marked as read",
+    carSyncGo: "🚗 Preparing Android Auto: {n} book(s), keep the app open…", carSyncOne: "🚗 Android Auto: “{t}” is ready ({i}/{n})", carSyncOk: "🚗 Android Auto is ready: {n} book(s) added or updated",
     tvListen: "Listen on {n}", phoneListen: "On the phone", tvBook: "Play “{t}” on the TV", tvCh: "Play on the TV from chapter {n}", tvBusy: "Preparing for the TV… {i}/{n}", tvTrBg: "The TV is already reading; the next chapters are translated into French on the phone and sent to it as they are ready.", tvRead: "{n} chapter(s) listened to on the TV marked as read",
     resumeK: "Continue reading", resumeB: "Continue", lastRead: "Read {w}", justNow: "just now", agoM: "{n} min ago", agoH: "{n} h ago", agoD: "{n} d ago",
     pctBook: "{p}% of the book", pctCh: "{p}% of the chapter", leftCh: "{m} min left in chapter", leftChS: "{m} min left", chEnd: "End of chapter",
@@ -512,13 +514,28 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     carSyncing = true;
     try {
       const all = await loadLib(), skip = new Set(carSkip());
-      for (const b of all) {
-        if (skip.has(b.id) || !b.chapters || !b.chapters.length || carVersion(b) === carV(b)) continue;
-        if (store.offline && !downloaded(b)) continue;
-        try { await sendToCar(b, null, true); } catch (e) { console.warn("voiture", b.id, e); }
+      const todo = all.filter(b => !skip.has(b.id) && b.chapters && b.chapters.length && carVersion(b) !== carV(b)
+        && !(store.offline && !downloaded(b)));
+      if (!todo.length) return;
+      // Les livres pas encore préparés apparaissent tout de suite dans la voiture, marqués « en préparation ».
+      for (const b of todo) if (!carVersion(b)) {
+        try { c.saveBook(JSON.stringify({ id: b.id, title: pick(b, "title", upl(b) ? uiLang() : cLang()), author: b.author || "", version: "", cover: "", pending: true, chapters: [] })); } catch { /* */ }
+      }
+      toast(t("carSyncGo", { n: todo.length }), "info");
+      let done = 0;
+      for (const b of todo) {
+        try {
+          // un seul appel pour tout le livre (au lieu d'un par chapitre) : beaucoup plus rapide pour les gros livres importés
+          if (!downloaded(b) && remote() && !store.offline) await downloadBook(b).catch(e => console.warn("voiture : chapitre par chapitre", b.id, e));
+          await sendToCar(b, null, true);
+          done++;
+          toast(t("carSyncOne", { t: pick(b, "title", uiLang()), i: done, n: todo.length }), "ok");
+        } catch (e) { console.warn("voiture", b.id, e); }
+        if (!(player && player.playing)) for (const ch of b.chapters) mem.delete(b.id + "|" + ch.n);   // libère la mémoire
         await new Promise(r => setTimeout(r, 300));
       }
       carSettings();
+      if (done) toast(t("carSyncOk", { n: done }), "ok");
     } catch (e) { console.warn("voiture", e); }
     finally { carSyncing = false; }
   }
