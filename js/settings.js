@@ -47,7 +47,8 @@ const TX = {
     sampleEn: "Hello! This is the voice that will read your books and questions. Amazon Route 53 is a highly available DNS service.",
     read: "// LECTURE À VOIX HAUTE", speed: "Vitesse de la voix", gap: "Pause entre les phrases", none: "aucune",
     chain: "Enchaîner automatiquement le chapitre suivant", awake: "Garder l'écran allumé pendant l'écoute",
-    carAuto: "Android Auto : préparer tous les livres et cours automatiquement", carAutoDesc: "Dans la voiture : Livres (chaque livre et ses chapitres) et Certifications (chaque chapitre en quiz audio). Mis à jour à chaque ouverture de l'appli.",
+    carAuto: "Android Auto : préparer tous les livres et cours automatiquement", carFr: "Android Auto : lire en français les chapitres en anglais", carFrDesc: "La voiture traduit le chapitre pendant l'écoute (traducteur du téléphone si Android en a un, sinon Google en ligne : le texte du chapitre lui est envoyé). Une fois traduit, le chapitre est gardé et se relit sans réseau.",
+    carAutoDesc: "Dans la voiture : Livres (chaque livre et ses chapitres) et Certifications (chaque chapitre en quiz audio). Mis à jour à chaque ouverture de l'appli.",
     xp: "// MODE EXPRESS", xpWait: "Temps pour répondre", xpNext: "Attente avant la question suivante",
     disp: "// AFFICHAGE", lang: "Langue de l'interface", theme: "Thème", dark: "Sombre", light: "Clair",
     font: "Taille du texte", fontDesc: "Agrandit ou réduit tout le texte de l'application (sur ce téléphone, cette tablette ou cette télé).",
@@ -69,7 +70,8 @@ const TX = {
     sampleEn: "Hello! This is the voice that will read your books and questions. Amazon Route 53 is a highly available DNS service.",
     read: "// READING ALOUD", speed: "Voice speed", gap: "Pause between sentences", none: "none",
     chain: "Automatically continue with the next chapter", awake: "Keep the screen on while listening",
-    carAuto: "Android Auto: prepare all books and courses automatically", carAutoDesc: "In the car: Books (each book and its chapters) and Certifications (each chapter as an audio quiz). Updated every time the app opens.",
+    carAuto: "Android Auto: prepare all books and courses automatically", carFr: "Android Auto: read English chapters in French", carFrDesc: "The car translates the chapter while you listen (the phone's translator if Android has one, otherwise Google online: the chapter's text is sent to it). Once translated, the chapter is kept and plays again without network.",
+    carAutoDesc: "In the car: Books (each book and its chapters) and Certifications (each chapter as an audio quiz). Updated every time the app opens.",
     xp: "// EXPRESS MODE", xpWait: "Time to answer", xpNext: "Wait before the next question",
     disp: "// DISPLAY", lang: "Interface language", theme: "Theme", dark: "Dark", light: "Light",
     font: "Text size", fontDesc: "Makes all the text in the app bigger or smaller (on this phone, tablet or TV).",
@@ -140,7 +142,9 @@ export function renderSettings(ctx) {
         <label class="set-row set-check"><input type="checkbox" id="set-chain" ${P.chain ? "checked" : ""}> <span>${esc(T("chain"))}</span></label>
         <label class="set-row set-check"><input type="checkbox" id="set-awake" ${P.awake ? "checked" : ""}> <span>${esc(T("awake"))}</span></label>
         ${window.AndroidCar ? `<label class="set-row set-check"><input type="checkbox" id="set-car" ${P.carAuto !== false ? "checked" : ""}> <span>${esc(T("carAuto"))}</span></label>
-        <p class="muted">${esc(T("carAutoDesc"))}</p>` : ""}
+        <p class="muted">${esc(T("carAutoDesc"))}</p>
+        <label class="set-row set-check"><input type="checkbox" id="set-carfr" ${P.carFr !== false ? "checked" : ""}> <span>${esc(T("carFr"))}</span></label>
+        <p class="muted">${esc(T("carFrDesc"))}</p>` : ""}
       </section>
 
       <section class="panel set-sec">
@@ -189,6 +193,7 @@ export function renderSettings(ctx) {
     app.querySelectorAll("[data-gap]").forEach(b => b.onclick = () => { B.setPref("gap", +b.dataset.gap); paint(); });
     const ch = app.querySelector("#set-chain"); ch.onchange = () => B.setPref("chain", ch.checked);
     const aw = app.querySelector("#set-awake"); aw.onchange = () => B.setPref("awake", aw.checked);
+    const cf = app.querySelector("#set-carfr"); if (cf) cf.onchange = () => B.setPref("carFr", cf.checked);
     const ca = app.querySelector("#set-car"); if (ca) ca.onchange = () => { B.setPref("carAuto", ca.checked); if (ca.checked) B.carSyncAll(); };
     app.querySelectorAll("[data-xpwait]").forEach(b => b.onclick = () => { setXp("wait", +b.dataset.xpwait); paint(); });
     app.querySelectorAll("[data-xpnext]").forEach(b => b.onclick = () => { setXp("next", +b.dataset.xpnext); paint(); });

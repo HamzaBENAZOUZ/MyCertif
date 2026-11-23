@@ -1,9 +1,9 @@
 {
-  "versionCode": 48,
-  "versionName": "3.27",
+  "versionCode": 49,
+  "versionName": "3.28",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Android Auto : le livre que tu lis ou écoutes sur le téléphone apparaît en tête de l'onglet « En cours », au bon chapitre, et la voiture reprend à la phrase où tu t'es arrêté. Les chapitres déjà traduits en français dans l'appli sont lus traduits dans la voiture (mis à jour dès qu'une traduction se termine).",
-    "en": "Android Auto: the book you're reading or listening to on the phone shows first in the “Now playing” tab, at the right chapter, and the car resumes at the sentence where you stopped. Chapters already translated into French in the app are read translated in the car (updated as soon as a translation finishes)."
+    "fr": "Android Auto : les chapitres en anglais sont lus en français dans la voiture, même s'ils n'ont pas été traduits avant. La voiture traduit pendant l'écoute et garde la traduction pour la fois suivante. Réglage dans Paramètres.",
+    "en": "Android Auto: English chapters are read in French in the car, even if they weren't translated before. The car translates while you listen and keeps the translation for next time. Setting in Settings."
   }
 }

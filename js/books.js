@@ -466,7 +466,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   const car = () => window.AndroidCar || null;
   function carSettings() {
     const c = car(); if (!c) return;
-    try { c.settings(JSON.stringify({ rate: prefs.rate, voice: prefs.vname || {}, chain: prefs.chain, gap: Math.round((+prefs.gap || 0) * 1000), reading: carReading() })); } catch { /* ancienne appli */ }
+    try { c.settings(JSON.stringify({ rate: prefs.rate, voice: prefs.vname || {}, chain: prefs.chain, gap: Math.round((+prefs.gap || 0) * 1000), reading: carReading(), fr: prefs.carFr !== false })); } catch { /* ancienne appli */ }
   }
   /** Livres lus sur le téléphone (les plus récents d'abord) : la voiture les met en tête de « En cours », au bon chapitre et au bon endroit. */
   function carReading() {
