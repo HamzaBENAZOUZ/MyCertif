@@ -1,9 +1,9 @@
 {
-  "versionCode": 55,
-  "versionName": "3.34",
+  "versionCode": 56,
+  "versionName": "3.35",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Livres : les boutons des écouteurs et des kits Bluetooth (⏯ pause / lecture, ⏭ ⏮) commandent maintenant la lecture sur le téléphone. La voix du téléphone sortait du moteur vocal, Android envoyait donc ces boutons à une autre appli.",
-    "en": "Books: Bluetooth earbud and hands-free buttons (⏯ pause/play, ⏭ ⏮) now control phone playback. The phone voice came from the speech engine, so Android sent those buttons to another app."
+    "fr": "Livres : la lecture continue téléphone verrouillé, comme une appli de musique. La pause entre les phrases est maintenant faite par l'appli elle-même : Android ralentissait fortement la page écran éteint, et la lecture s'arrêtait.",
+    "en": "Books: playback keeps going with the phone locked, like a music app. The pause between sentences is now made by the app itself: Android heavily slowed the page with the screen off, and playback stalled."
   }
 }

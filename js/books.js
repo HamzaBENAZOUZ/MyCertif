@@ -2093,7 +2093,9 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
         if (!player || my !== player.token) return;
         if (j + 1 < segs.length) {   // petite pause entre deux phrases (réglage « Pause entre les phrases »)
           const g = (+prefs.gap || 0) * 1000;
-          if (g > 0) setTimeout(() => { if (player && my === player.token) play(j + 1); }, g); else play(j + 1);
+          // pause faite par l'appli quand elle sait la faire : la lecture continue écran verrouillé
+          const nat = g > 0 && (carVoice ? carGap(g) : !!(tts.gap && tts.gap(g)));
+          if (g > 0 && !nat) setTimeout(() => { if (player && my === player.token) play(j + 1); }, g); else play(j + 1);
         }
         else {
           player.playing = false; player.i = 0; P.pos[key] = 0; wrj(PKEY, P); onEnd();
@@ -2115,6 +2117,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       try { const [ti, su] = titleOf(); ok = window.AndroidCar.say(text, lng === "fr" ? "fr" : "en", +prefs.rate || 1, ti, su); } catch { /* */ }
       if (!ok) { window.__carSaid = null; carVoice = false; toast(t("carSayNo"), "warn"); say(txt, lng, done); }
     };
+    const carGap = g => { try { return !!(window.AndroidCar && typeof window.AndroidCar.sayGap === "function" && window.AndroidCar.sayGap(Math.round(g))); } catch { return false; } };
     const stopVoice = () => { tts.stop(); window.__carSaid = null; try { if (window.AndroidCar && window.AndroidCar.sayStop) window.AndroidCar.sayStop(); } catch { /* */ } };
     const pause = () => { if (!player) return; player.token++; player.playing = false; stopVoice(); paint(); };
     window.__carSayErr = c => { pause(); toast(t("carSayErr", { c }), "err"); };
