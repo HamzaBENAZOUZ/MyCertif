@@ -183,6 +183,9 @@ function speakText(text, lang = "en", rate = 1, done = () => {}, voiceId = "") {
   u.onerror = e => { if (e.error !== "interrupted" && e.error !== "canceled") done(); };
   speechSynthesis.speak(u);
 }
+// L'appli signale une voix du téléphone en panne (moteur absent, voix non installée…) : message au lieu d'un silence.
+let ttsErrAt = 0;
+window.__ttsErr = msg => { if (Date.now() - ttsErrAt < 6000) return; ttsErrAt = Date.now(); toast("🔇 " + msg, "err"); };
 const TTS = { can: canSpeak, canFr: canSpeakFr, speak: speakText, voices: listVoices,
   onVoices: fn => { if (canSpeak && !nativeTTS && speechSynthesis.addEventListener) speechSynthesis.addEventListener("voiceschanged", fn); }, stop: () => { if (nativeTTS) nativeTTS.stop(); else if (canSpeak) speechSynthesis.cancel(); } };
 /**
