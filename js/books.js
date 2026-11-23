@@ -78,6 +78,9 @@ const L = {
     car: "Écouter dans la voiture (Android Auto)", carUpd: "Mettre à jour dans la voiture", carIn: "Dans la voiture",
     carBusy: "Envoi vers la voiture… {i}/{n}", carOk: "« {t} » est prêt dans Android Auto", carRm: "Retirer de la voiture",
     carRmOk: "Livre retiré d'Android Auto", carErr: "Envoi vers la voiture impossible", carRead: "{n} chapitre(s) écouté(s) en voiture marqué(s) comme lu(s)",
+    carSay: "Lire sur ma voiture", carSayOn: "🚗 Le son passe par la voiture : tu gardes la main sur le téléphone (texte, pause, phrases)",
+    carSayOff: "📱 Le son revient sur le téléphone", carSayErr: "🔇 La voix ne répond pas dans la voiture (code {c}). Vérifie la synthèse vocale dans les réglages Android.",
+    carSayNo: "🚗 La voiture n'a pas pris le son : mets à jour l'appli MyCertif",
     carHand: "🚗 Android Auto est branché : la lecture continue dans la voiture", carNotYet: "🚗 Ce livre n'est pas encore prêt dans la voiture : garde l'appli ouverte quelques minutes",
     carSyncGo: "🚗 Préparation d'Android Auto : {n} livre(s), garde l'appli ouverte…", carSyncOne: "🚗 Android Auto : « {t} » est prêt ({i}/{n})", carSyncOk: "🚗 Android Auto est prêt : {n} livre(s) ajouté(s) ou mis à jour",
     tvListen: "Écouter sur {n}", phoneListen: "Sur le téléphone", tvBook: "Lire « {t} » sur la télé", tvCh: "Lire sur la télé à partir du chapitre {n}", tvBusy: "Préparation pour la télé… {i}/{n}", tvTrBg: "La télé lit déjà ; les chapitres suivants sont traduits en français sur le téléphone et lui sont envoyés au fur et à mesure.", tvRead: "{n} chapitre(s) écouté(s) sur la télé marqué(s) comme lu(s)",
@@ -155,6 +158,9 @@ const L = {
     car: "Listen in the car (Android Auto)", carUpd: "Update in the car", carIn: "In the car",
     carBusy: "Sending to the car… {i}/{n}", carOk: "“{t}” is ready in Android Auto", carRm: "Remove from the car",
     carRmOk: "Book removed from Android Auto", carErr: "Could not send to the car", carRead: "{n} chapter(s) listened to in the car marked as read",
+    carSay: "Play in my car", carSayOn: "🚗 Sound goes through the car: you keep control on the phone (text, pause, sentences)",
+    carSayOff: "📱 Sound is back on the phone", carSayErr: "🔇 The voice isn't answering in the car (code {c}). Check text-to-speech in Android settings.",
+    carSayNo: "🚗 The car didn't take the sound: update the MyCertif app",
     carHand: "🚗 Android Auto is connected: playback continues in the car", carNotYet: "🚗 This book isn't ready in the car yet: keep the app open for a few minutes",
     carSyncGo: "🚗 Preparing Android Auto: {n} book(s), keep the app open…", carSyncOne: "🚗 Android Auto: “{t}” is ready ({i}/{n})", carSyncOk: "🚗 Android Auto is ready: {n} book(s) added or updated",
     tvListen: "Listen on {n}", phoneListen: "On the phone", tvBook: "Play “{t}” on the TV", tvCh: "Play on the TV from chapter {n}", tvBusy: "Preparing for the TV… {i}/{n}", tvTrBg: "The TV is already reading; the next chapters are translated into French on the phone and sent to it as they are ready.", tvRead: "{n} chapter(s) listened to on the TV marked as read",
@@ -228,6 +234,9 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   const mem = new Map();          // chapitres déjà chargés (id|n)
   let root = null, pushTimer = null, busy = false;
   let player = null;              // { segs, i, playing, token, lang }
+  // « Lire sur ma voiture » : le lecteur du téléphone garde la main, chaque phrase est dite par le lecteur de la voiture
+  let carVoice = false;
+  const canCarSay = () => !!(window.AndroidCar && typeof window.AndroidCar.say === "function");
   let quizState = null;
   let bgWarned = false;           // avertissement « notifications coupées » déjà montré
   let draft = null;               // import PDF / EPUB en cours de vérification
@@ -1267,6 +1276,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
           ${(w => `<span class="bk-eta mono" data-w="${w}">${etaHtml(w)}</span>`)(countWords(html))}
           ${tvNow ? `<button class="btn btn-primary btn-sm" id="bk-tvlisten">📺 ${esc(t("tvListen", { n: tvNow.name || "TV" }))}</button>` : ""}
           ${tts.can ? `<button class="btn ${tvNow ? "btn-ghost" : "btn-primary"} btn-sm" id="bk-listen">🔊 ${esc(tvNow ? t("phoneListen") : pos ? t("resume") : t("listen"))}</button>
+            ${canCarSay() ? `<button class="btn btn-ghost btn-sm" id="bk-carsay" aria-pressed="${carVoice}">🚗 ${esc(t("carSay"))}</button>` : ""}
             <button class="btn btn-ghost btn-sm" id="bk-set-open" title="${esc(t("settings"))}">⚙ ${esc(t("settings"))}</button>` : ""}
           ${r.r ? `<span class="bk-read-tag mono">✓ ${esc(t("isRead"))}</span>` : ""}
         </div>
@@ -1318,6 +1328,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       <button class="icon-btn bk-pl-main" data-pl="toggle" title="${esc(t("play"))}" aria-label="${esc(t("play"))}">▶</button>
       <button class="icon-btn" data-pl="next" title="${esc(t("nextS"))}" aria-label="${esc(t("nextS"))}">⏭</button>
       <span class="bk-pl-pos mono" id="bk-pl-pos"></span>
+      ${canCarSay() ? `<button class="icon-btn bk-pl-car" data-pl="car" aria-pressed="${carVoice}" title="${esc(t("carSay"))}" aria-label="${esc(t("carSay"))}">🚗</button>` : ""}
       <button class="btn btn-ghost btn-xs mono" data-pl="set" title="${esc(t("settings"))}" aria-label="${esc(t("settings"))}">⚙ <span id="bk-pl-rate">${prefs.rate}×</span></button>
       <button class="icon-btn" data-pl="close" title="${esc(t("close"))}" aria-label="${esc(t("close"))}">✕</button>
     </div>`;
@@ -2036,9 +2047,11 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       main.title = main.ariaLabel = t(player.playing ? "pause" : "play");
       bar.querySelector("#bk-pl-rate").textContent = prefs.rate + "×";
       screenAwake(on && player.playing);
+      root.querySelectorAll("#bk-carsay, [data-pl=car]").forEach(x => x.setAttribute("aria-pressed", carVoice));
       const m = media();
       if (m) try {
-        if (on) m.update(!!player.playing, pick(ch, "title", lang) || `${t("chapter")} ${ch.n}`, `${pick(b, "title", uiLang())} · ${t("chapter")} ${ch.n}`);
+        if (carVoice) m.end();             // le son passe par la voiture : pas de second lecteur sur le téléphone
+        else if (on) m.update(!!player.playing, pick(ch, "title", lang) || `${t("chapter")} ${ch.n}`, `${pick(b, "title", uiLang())} · ${t("chapter")} ${ch.n}`);
         else m.end();
       } catch { /* ancienne appli */ }
     };
@@ -2074,7 +2087,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       player.i = j; player.playing = true; keep();
       const my = ++player.token; paint();
       follow(j);
-      say(segs[j].txt, player.lang, () => {
+      speakSeg(segs[j].txt, player.lang, () => {
         if (!player || my !== player.token) return;
         if (j + 1 < segs.length) {   // petite pause entre deux phrases (réglage « Pause entre les phrases »)
           const g = (+prefs.gap || 0) * 1000;
@@ -2089,18 +2102,33 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
         }
       });
     };
-    const pause = () => { if (!player) return; player.token++; player.playing = false; tts.stop(); paint(); };
-    // Téléphone branché sur Android Auto : Android Auto coupe le son du lecteur du téléphone,
-    // la lecture passe donc par le lecteur de la voiture (même chapitre, même phrase).
-    const toCar = j => {
-      const c = car();
-      try {
-        if (!c || typeof c.inCar !== "function" || !c.inCar()) return false;
-        if (c.playHere(b.id, ch.n, j)) { pause(); toast(t("carHand"), "ok"); return true; }
-        toast(t("carNotYet"), "warn");
-      } catch { /* ancienne appli */ }
-      return false;
+    const titleOf = () => [pick(ch, "title", lang) || `${t("chapter")} ${ch.n}`, `${pick(b, "title", uiLang())} · ${t("chapter")} ${ch.n}`];
+    /** Une phrase : voix du téléphone, ou lecteur de la voiture en mode « Lire sur ma voiture ». */
+    const speakSeg = (txt, lng, done) => {
+      if (!carVoice) return say(txt, lng, done);
+      const text = forEar(txt, lng);
+      if (!text) return done();
+      window.__carSaid = () => { window.__carSaid = null; done(); };
+      let ok = false;
+      try { const [ti, su] = titleOf(); ok = window.AndroidCar.say(text, lng === "fr" ? "fr" : "en", +prefs.rate || 1, ti, su); } catch { /* */ }
+      if (!ok) { window.__carSaid = null; carVoice = false; toast(t("carSayNo"), "warn"); say(txt, lng, done); }
     };
+    const stopVoice = () => { tts.stop(); window.__carSaid = null; try { if (window.AndroidCar && window.AndroidCar.sayStop) window.AndroidCar.sayStop(); } catch { /* */ } };
+    const pause = () => { if (!player) return; player.token++; player.playing = false; stopVoice(); paint(); };
+    window.__carSayErr = c => { pause(); toast(t("carSayErr", { c }), "err"); };
+    // Téléphone branché sur Android Auto : Android Auto coupe le son du lecteur du téléphone ;
+    // le son passe alors par le lecteur de la voiture, et le téléphone garde la main (texte, pause, phrases).
+    const autoCar = () => {
+      if (carVoice || !canCarSay()) return;
+      try { if (typeof window.AndroidCar.inCar === "function" && window.AndroidCar.inCar()) { carVoice = true; toast(t("carSayOn"), "ok"); } } catch { /* */ }
+    };
+    const setCar = on => {
+      const was = player.playing; if (was) pause();
+      carVoice = on; toast(t(on ? "carSayOn" : "carSayOff"), "ok");
+      if (bar.hidden) { bar.hidden = false; document.body.classList.add("bk-playing"); startHere(); play(player.i); return; }
+      if (was || on) play(player.i); else paint();
+    };
+    const toCar = () => { autoCar(); return false; };
     const go = j => { j = Math.max(0, Math.min(segs.length - 1, j)); if (player.playing) play(j); else { player.i = j; keep(); paint(); } };
     const paraStart = (i, dir) => {
       const el = segs[i].el; let j = i;
@@ -2131,6 +2159,8 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       if (!toCar(player.i)) play(player.i);
     };
     if (btn) btn.onclick = () => (bar.hidden ? (startHere(), open()) : player.playing ? pause() : toCar(player.i) || play(player.i));
+    const cb = root.querySelector("#bk-carsay");
+    if (cb) cb.onclick = () => setCar(bar.hidden ? true : !carVoice);
     bar.onclick = e => {
       const a = e.target.closest("[data-pl]"); if (!a || !player) return;
       const k = a.dataset.pl;
@@ -2138,6 +2168,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       else if (k === "prev") go(player.i - 1);
       else if (k === "next") go(player.i + 1);
       else if (k === "set") toggleSet();
+      else if (k === "car") setCar(!carVoice);
       else if (k === "close") { pause(); bar.hidden = true; set.hidden = true; document.body.classList.remove("bk-playing"); paint(); }
     };
 
@@ -2234,7 +2265,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   }
   function stop() {
     mediaCtl = null;
-    if (player) { player.token++; player.playing = false; player = null; tts.stop(); const m = media(); if (m) try { m.end(); } catch { /* */ } }
+    if (player) { player.token++; player.playing = false; player = null; tts.stop(); window.__carSaid = null; try { if (carVoice && window.AndroidCar && window.AndroidCar.sayStop) window.AndroidCar.sayStop(); } catch { /* */ } const m = media(); if (m) try { m.end(); } catch { /* */ } }
     screenAwake(false);
     clearHL();
     document.body.classList.remove("bk-playing", "bk-set-on", "bk-pages", "bk-full", ...THEMES.map(x => "bk-th-" + x));

@@ -1,9 +1,9 @@
 {
-  "versionCode": 52,
-  "versionName": "3.31",
+  "versionCode": 53,
+  "versionName": "3.32",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Android Auto : quand le téléphone est branché sur Android Auto, le bouton ▶ d'un livre lance la lecture par le lecteur de la voiture (Android Auto coupait le son du lecteur du téléphone). La voiture lit même si Android refuse ou diffère la priorité du son, au lieu de rester muette.",
-    "en": "Android Auto: when the phone is connected to Android Auto, a book's ▶ button now plays through the car's player (Android Auto was muting the phone's player). The car plays even if Android refuses or delays audio focus, instead of staying silent."
+    "fr": "Livres : nouveau bouton « 🚗 Lire sur ma voiture » (sous le titre du chapitre et dans la barre de lecture). Le son passe par la voiture et tu gardes la main sur le téléphone : texte, surlignage, pause, phrases. Il s'active tout seul quand le téléphone est branché sur Android Auto.",
+    "en": "Books: new « 🚗 Play in my car » button (under the chapter title and in the player bar). Sound goes through the car while you keep control on the phone: text, highlighting, pause, sentences. Turns on by itself when the phone is connected to Android Auto."
   }
 }
