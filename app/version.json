@@ -1,9 +1,9 @@
 {
-  "versionCode": 51,
-  "versionName": "3.30",
+  "versionCode": 52,
+  "versionName": "3.31",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Correctif voix : si la voix du téléphone ne démarre pas ou renvoie une erreur, l'appli la relance, réessaie avec la voix par défaut de la langue, et affiche un message (avec le code d'erreur) au lieu de rester muette. Même chose dans Android Auto.",
-    "en": "Voice fix: if the phone's voice doesn't start or returns an error, the app restarts it, retries with the language's default voice, and shows a message (with the error code) instead of staying silent. Same in Android Auto."
+    "fr": "Android Auto : quand le téléphone est branché sur Android Auto, le bouton ▶ d'un livre lance la lecture par le lecteur de la voiture (Android Auto coupait le son du lecteur du téléphone). La voiture lit même si Android refuse ou diffère la priorité du son, au lieu de rester muette.",
+    "en": "Android Auto: when the phone is connected to Android Auto, a book's ▶ button now plays through the car's player (Android Auto was muting the phone's player). The car plays even if Android refuses or delays audio focus, instead of staying silent."
   }
 }

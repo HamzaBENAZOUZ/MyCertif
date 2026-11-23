@@ -78,6 +78,7 @@ const L = {
     car: "Écouter dans la voiture (Android Auto)", carUpd: "Mettre à jour dans la voiture", carIn: "Dans la voiture",
     carBusy: "Envoi vers la voiture… {i}/{n}", carOk: "« {t} » est prêt dans Android Auto", carRm: "Retirer de la voiture",
     carRmOk: "Livre retiré d'Android Auto", carErr: "Envoi vers la voiture impossible", carRead: "{n} chapitre(s) écouté(s) en voiture marqué(s) comme lu(s)",
+    carHand: "🚗 Android Auto est branché : la lecture continue dans la voiture", carNotYet: "🚗 Ce livre n'est pas encore prêt dans la voiture : garde l'appli ouverte quelques minutes",
     carSyncGo: "🚗 Préparation d'Android Auto : {n} livre(s), garde l'appli ouverte…", carSyncOne: "🚗 Android Auto : « {t} » est prêt ({i}/{n})", carSyncOk: "🚗 Android Auto est prêt : {n} livre(s) ajouté(s) ou mis à jour",
     tvListen: "Écouter sur {n}", phoneListen: "Sur le téléphone", tvBook: "Lire « {t} » sur la télé", tvCh: "Lire sur la télé à partir du chapitre {n}", tvBusy: "Préparation pour la télé… {i}/{n}", tvTrBg: "La télé lit déjà ; les chapitres suivants sont traduits en français sur le téléphone et lui sont envoyés au fur et à mesure.", tvRead: "{n} chapitre(s) écouté(s) sur la télé marqué(s) comme lu(s)",
     // 3.20 : bibliothèque et lecture façon liseuse
@@ -154,6 +155,7 @@ const L = {
     car: "Listen in the car (Android Auto)", carUpd: "Update in the car", carIn: "In the car",
     carBusy: "Sending to the car… {i}/{n}", carOk: "“{t}” is ready in Android Auto", carRm: "Remove from the car",
     carRmOk: "Book removed from Android Auto", carErr: "Could not send to the car", carRead: "{n} chapter(s) listened to in the car marked as read",
+    carHand: "🚗 Android Auto is connected: playback continues in the car", carNotYet: "🚗 This book isn't ready in the car yet: keep the app open for a few minutes",
     carSyncGo: "🚗 Preparing Android Auto: {n} book(s), keep the app open…", carSyncOne: "🚗 Android Auto: “{t}” is ready ({i}/{n})", carSyncOk: "🚗 Android Auto is ready: {n} book(s) added or updated",
     tvListen: "Listen on {n}", phoneListen: "On the phone", tvBook: "Play “{t}” on the TV", tvCh: "Play on the TV from chapter {n}", tvBusy: "Preparing for the TV… {i}/{n}", tvTrBg: "The TV is already reading; the next chapters are translated into French on the phone and sent to it as they are ready.", tvRead: "{n} chapter(s) listened to on the TV marked as read",
     resumeK: "Continue reading", resumeB: "Continue", lastRead: "Read {w}", justNow: "just now", agoM: "{n} min ago", agoH: "{n} h ago", agoD: "{n} d ago",
@@ -2088,6 +2090,17 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       });
     };
     const pause = () => { if (!player) return; player.token++; player.playing = false; tts.stop(); paint(); };
+    // Téléphone branché sur Android Auto : Android Auto coupe le son du lecteur du téléphone,
+    // la lecture passe donc par le lecteur de la voiture (même chapitre, même phrase).
+    const toCar = j => {
+      const c = car();
+      try {
+        if (!c || typeof c.inCar !== "function" || !c.inCar()) return false;
+        if (c.playHere(b.id, ch.n, j)) { pause(); toast(t("carHand"), "ok"); return true; }
+        toast(t("carNotYet"), "warn");
+      } catch { /* ancienne appli */ }
+      return false;
+    };
     const go = j => { j = Math.max(0, Math.min(segs.length - 1, j)); if (player.playing) play(j); else { player.i = j; keep(); paint(); } };
     const paraStart = (i, dir) => {
       const el = segs[i].el; let j = i;
@@ -2115,13 +2128,13 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       bar.hidden = false; document.body.classList.add("bk-playing");
       if (lang === "fr" && !tts.canFr) toast(t("noVoiceFr"), "warn");
       else if (window.AndroidListen && !bgWarned) { try { if (!window.AndroidListen.notifOk()) { bgWarned = true; toast(t("bgNotif"), "warn"); } } catch { /* */ } }
-      play(player.i);
+      if (!toCar(player.i)) play(player.i);
     };
-    if (btn) btn.onclick = () => (bar.hidden ? (startHere(), open()) : player.playing ? pause() : play(player.i));
+    if (btn) btn.onclick = () => (bar.hidden ? (startHere(), open()) : player.playing ? pause() : toCar(player.i) || play(player.i));
     bar.onclick = e => {
       const a = e.target.closest("[data-pl]"); if (!a || !player) return;
       const k = a.dataset.pl;
-      if (k === "toggle") player.playing ? pause() : play(player.i);
+      if (k === "toggle") player.playing ? pause() : toCar(player.i) || play(player.i);
       else if (k === "prev") go(player.i - 1);
       else if (k === "next") go(player.i + 1);
       else if (k === "set") toggleSet();
