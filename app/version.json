@@ -1,9 +1,9 @@
 {
-  "versionCode": 49,
-  "versionName": "3.28",
+  "versionCode": 50,
+  "versionName": "3.29",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Android Auto : les chapitres en anglais sont lus en français dans la voiture, même s'ils n'ont pas été traduits avant. La voiture traduit pendant l'écoute et garde la traduction pour la fois suivante. Réglage dans Paramètres.",
-    "en": "Android Auto: English chapters are read in French in the car, even if they weren't translated before. The car translates while you listen and keeps the translation for next time. Setting in Settings."
+    "fr": "Correctif lecture audio : si la voix naturelle ne produit aucun son au bout de 15 secondes, l'appli passe toute seule à la voix du téléphone (téléphone et Android Auto) au lieu de rester muette. Dans la voiture, un chapitre en cours de traduction ne fait plus de longs silences : il est lu en anglais en attendant la traduction.",
+    "en": "Audio fix: if the natural voice makes no sound within 15 seconds, the app switches to the phone's voice by itself (phone and Android Auto) instead of staying silent. In the car, a chapter being translated no longer has long silences: it is read in English until the translation is ready."
   }
 }
