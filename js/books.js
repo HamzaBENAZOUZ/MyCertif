@@ -2046,7 +2046,6 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       main.textContent = player.playing ? "⏸" : "▶";
       main.title = main.ariaLabel = t(player.playing ? "pause" : "play");
       bar.querySelector("#bk-pl-rate").textContent = prefs.rate + "×";
-      screenAwake(on && player.playing);
       root.querySelectorAll("#bk-carsay, [data-pl=car]").forEach(x => x.setAttribute("aria-pressed", carVoice));
       const m = media();
       if (m) try {
@@ -2054,6 +2053,9 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
         else if (on) m.update(!!player.playing, pick(ch, "title", lang) || `${t("chapter")} ${ch.n}`, `${pick(b, "title", uiLang())} · ${t("chapter")} ${ch.n}`);
         else m.end();
       } catch { /* ancienne appli */ }
+      // écran allumé pendant l'écoute, après le lecteur : sa fermeture (m.end, mode voiture) relâche aussi l'écran dans l'appli
+      if (m && carVoice) awakeWant = null;
+      screenAwake(on && player.playing);
     };
     const keep = () => { P.pos[key] = player.i; wrj(PKEY, P); carReadSoon(); };
     /** Partie de l'écran où le texte est vraiment visible : sous la barre du haut et le lecteur, au-dessus de la progression et des onglets. */
