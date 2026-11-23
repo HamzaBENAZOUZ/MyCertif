@@ -252,8 +252,8 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     return R;
   };
   let rTimer = null;
-  const rSave = (now = false) => { clearTimeout(rTimer); if (now) wrj(RKEY(), rd()); else rTimer = setTimeout(() => wrj(RKEY(), rd()), 400); };
-  addEventListener("pagehide", () => { if (R) wrj(RKEY(), R); });
+  const rSave = (now = false) => { clearTimeout(rTimer); if (now) wrj(RKEY(), rd()); else rTimer = setTimeout(() => wrj(RKEY(), rd()), 400); carReadSoon(); };
+  addEventListener("pagehide", () => { if (R) wrj(RKEY(), R); if (car()) carSettings(); });
   /** Part lue du livre (0 à 1) : chapitres lus + avancée dans le chapitre en cours. */
   const bookPct = b => {
     const pr = P.books[b.id] || {}, r = rd(); if (!b.chapters.length) return 0;
@@ -466,9 +466,25 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   const car = () => window.AndroidCar || null;
   function carSettings() {
     const c = car(); if (!c) return;
-    try { c.settings(JSON.stringify({ rate: prefs.rate, voice: prefs.vname || {}, chain: prefs.chain, gap: Math.round((+prefs.gap || 0) * 1000) })); } catch { /* ancienne appli */ }
+    try { c.settings(JSON.stringify({ rate: prefs.rate, voice: prefs.vname || {}, chain: prefs.chain, gap: Math.round((+prefs.gap || 0) * 1000), reading: carReading() })); } catch { /* ancienne appli */ }
   }
-  const carV = b => String(b.version || "") + "~" + SPEECH_V + "~" + (upl(b) ? voiceOf(b) : cLang());      // texte adapté à l'écoute : nouvelles règles = livre à renvoyer
+  /** Livres lus sur le téléphone (les plus récents d'abord) : la voiture les met en tête de « En cours », au bon chapitre et au bon endroit. */
+  function carReading() {
+    if (!userId()) return [];
+    const r = rd(), out = [];
+    // livre ouvert en ce moment dans le lecteur : lu à l'instant (sa date d'ouverture ne bouge pas pendant la lecture)
+    const m = /^#\/books\/([^/]+)\/\d+/.exec(location.hash || ""), cur = m ? decodeURIComponent(m[1]) : null;
+    for (const id of Object.keys(r.open)) {
+      const n = P.last[id]; if (!Number.isInteger(n)) continue;
+      const sp = r.spot[id + "|" + n] || {};
+      // i : phrase où l'écoute s'est arrêtée sur le téléphone (la voiture ajoute le titre en tête : phrase i + 1)
+      out.push({ book: id, n, at: id === cur ? Date.now() : r.open[id], f: Math.max(0, Math.min(0.99, +sp.f || 0)), i: P.pos[id + "|" + n] || 0 });
+    }
+    return out.sort((a, b) => b.at - a.at).slice(0, 10);
+  }
+  var carRTimer = null;
+  function carReadSoon() { try { if (!window.AndroidCar) return; clearTimeout(carRTimer); carRTimer = setTimeout(carSettings, 2000); } catch { /* */ } }
+  const carV = b => String(b.version || "") + "~" + SPEECH_V + "~" + (upl(b) ? voiceOf(b) + (prefs.tr && prefs.tr[b.id] ? "+tr" : "") : cLang());      // texte adapté à l'écoute : nouvelles règles = livre à renvoyer
   const carVersion = b => { const c = car(); try { return c ? c.bookVersion(b.id) || "" : ""; } catch { return ""; } };
   /**
    * Case de tableau à lire ? Non si elle contient des paragraphes (lus un par un), si elle est vide ou si ce n'est
@@ -539,24 +555,59 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     } catch (e) { console.warn("voiture", e); }
     finally { carSyncing = false; }
   }
+  /** Traduction voulue pour ce livre (livre importé en anglais avec « Traduire », ou chapitre sans texte français). */
+  const carWantTr = (b, ch) => { const u = upl(b); return u ? !!(u.lang === "en" && prefs.tr && prefs.tr[b.id]) : cLang() === "fr" && !ch.html_fr; };
+  /** Un chapitre tel qu'il part dans la voiture : traduit en français s'il l'a déjà été sur cet appareil. */
+  async function carChapterOf(b, ch) {
+    const u = upl(b), want = u ? voiceOf(b) : cLang();
+    let lang = u ? want : (want === "fr" && ch.html_fr ? "fr" : "en");
+    let html = u ? ch.html_en : (lang === "fr" ? ch.html_fr : ch.html_en);
+    let title = pick(ch, "title", u ? "en" : lang) || `${t("chapter")} ${ch.n}`, tr = false;
+    if (carWantTr(b, ch)) {
+      const x = await trHtml(b, ch, false);           // seulement si tout le chapitre est déjà traduit (rien n'est lancé ici)
+      trCache.delete(trKey(b, ch.n));
+      if (x) { lang = "fr"; html = x.html; title = x.title || title; tr = true; }
+    }
+    const segs = [forEar(title, lang) + ".", ...speechOf(html, lang)];
+    return { file: { n: ch.n, title, lang, segs }, meta: { n: ch.n, title, tr, words: segs.reduce((k, x) => k + (String(x).trim().match(/\S+/g) || []).length, 0) } };
+  }
+  const CAR_META = "mycertif-car-meta:";              // liste des chapitres envoyés, pour mettre à jour un seul chapitre ensuite
+  const carBookJson = (b, chs) => JSON.stringify({ id: b.id, title: pick(b, "title", upl(b) ? voiceOf(b) : cLang()), author: b.author || "", version: carV(b),
+    cover: b.cover && /^data:image\/(png|jpe?g|webp);base64,/.test(b.cover) ? b.cover : "", chapters: chs });
   async function sendToCar(b, onStep, auto = false) {
     const c = car(); if (!c) return;
     if (!auto) setSkip(b.id, false);
-    const u = upl(b), want = u ? voiceOf(b) : cLang(), chs = [];
+    const chs = [];
     for (let i = 0; i < b.chapters.length; i++) {
       onStep && onStep(i + 1, b.chapters.length);
-      const ch = await loadChapter(b, b.chapters[i].n);
-      const lang = u ? want : (want === "fr" && ch.html_fr ? "fr" : "en");
-      const html = u ? ch.html_en : (lang === "fr" ? ch.html_fr : ch.html_en);
-      const title = pick(ch, "title", lang) || `${t("chapter")} ${ch.n}`;
-      const segs = [forEar(title, lang) + ".", ...speechOf(html, lang)];
-      if (!c.saveChapter(b.id, ch.n, JSON.stringify({ n: ch.n, title, lang, segs }))) throw new Error(t("carErr"));
-      chs.push({ n: ch.n, title, words: segs.reduce((k, x) => k + (String(x).trim().match(/\S+/g) || []).length, 0) });
+      const x = await carChapterOf(b, await loadChapter(b, b.chapters[i].n));
+      if (!c.saveChapter(b.id, x.file.n, JSON.stringify(x.file))) throw new Error(t("carErr"));
+      chs.push(x.meta);
     }
-    const ok = c.saveBook(JSON.stringify({ id: b.id, title: pick(b, "title", want), author: b.author || "", version: carV(b),
-      cover: b.cover && /^data:image\/(png|jpe?g|webp);base64,/.test(b.cover) ? b.cover : "", chapters: chs }));
-    if (!ok) throw new Error(t("carErr"));
+    if (!c.saveBook(carBookJson(b, chs))) throw new Error(t("carErr"));
+    wrj(CAR_META + b.id, chs);
     carSettings();
+  }
+  /** Un chapitre vient d'être traduit sur l'appareil : sa version française remplace l'anglaise dans la voiture. */
+  const carTrTimers = new Map();
+  function carTrSoon(key) {
+    if (!window.AndroidCar) return;
+    clearTimeout(carTrTimers.get(key));
+    carTrTimers.set(key, setTimeout(async () => {
+      carTrTimers.delete(key);
+      const j = key.lastIndexOf("|"), id = key.slice(0, j), n = +key.slice(j + 1);
+      try {
+        const c = car(), b = book(id), meta = rdj(CAR_META + id);
+        if (!c || !b || !Array.isArray(meta) || !carVersion(b)) return;      // livre pas (encore) dans la voiture
+        const ch = await loadChapter(b, n);
+        if (!carWantTr(b, ch)) return;
+        const x = await carChapterOf(b, ch);
+        if (!x.meta.tr) return;                                               // traduction pas encore complète
+        if (!c.saveChapter(b.id, n, JSON.stringify(x.file))) return;
+        const chs = meta.map(m => m.n === n ? x.meta : m);
+        if (c.saveBook(carBookJson(b, chs))) wrj(CAR_META + id, chs);
+      } catch (e) { console.warn("voiture : traduction", key, e); }
+    }, 3000));
   }
   /** Chapitres écoutés jusqu'au bout dans la voiture : marqués comme lus ici (et synchronisés). */
   function carProgress() {
@@ -1273,7 +1324,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       if (btn.disabled) return; prefs.lang = btn.dataset.clang; savePrefs(); renderChapter(b, ch);
     });
     const trb = root.querySelector("#bk-tr");
-    if (trb) trb.onclick = () => { (prefs.tr ||= {})[b.id] = !trOn; savePrefs(); renderChapter(b, ch); };
+    if (trb) trb.onclick = () => { (prefs.tr ||= {})[b.id] = !trOn; savePrefs(); renderChapter(b, ch); if (carVersion(b)) setTimeout(carSyncAll, 1500); };
     root.querySelectorAll("[data-voice]").forEach(btn => btn.onclick = () => {
       (prefs.voice ||= {})[b.id] = btn.dataset.voice; savePrefs(); renderChapter(b, ch);
     });
@@ -1804,6 +1855,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       const A = natTr();
       if (A && typeof A.save === "function") A.save(key, JSON.stringify(data));
       else await idbSet("tr:" + key, data);
+      carTrSoon(key);
     } catch { /* stockage plein ou indisponible : la traduction reste affichée */ }
   }
   /** Morceaux à traduire d'un chapitre : bloc entier, ou seulement le texte hors code si le contenu est mélangé. */
@@ -1988,7 +2040,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
         else m.end();
       } catch { /* ancienne appli */ }
     };
-    const keep = () => { P.pos[key] = player.i; wrj(PKEY, P); };
+    const keep = () => { P.pos[key] = player.i; wrj(PKEY, P); carReadSoon(); };
     /** Partie de l'écran où le texte est vraiment visible : sous la barre du haut et le lecteur, au-dessus de la progression et des onglets. */
     const band = () => {
       let top = 0, bottom = innerHeight;
