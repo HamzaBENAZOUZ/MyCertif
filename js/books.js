@@ -252,8 +252,8 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     return R;
   };
   let rTimer = null;
-  const rSave = (now = false) => { clearTimeout(rTimer); if (now) wrj(RKEY(), rd()); else rTimer = setTimeout(() => wrj(RKEY(), rd()), 400); };
-  addEventListener("pagehide", () => { if (R) wrj(RKEY(), R); });
+  const rSave = (now = false) => { clearTimeout(rTimer); if (now) wrj(RKEY(), rd()); else rTimer = setTimeout(() => wrj(RKEY(), rd()), 400); carReadSoon(); };
+  addEventListener("pagehide", () => { if (R) wrj(RKEY(), R); if (car()) carSettings(); });
   /** Part lue du livre (0 à 1) : chapitres lus + avancée dans le chapitre en cours. */
   const bookPct = b => {
     const pr = P.books[b.id] || {}, r = rd(); if (!b.chapters.length) return 0;
@@ -466,8 +466,23 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   const car = () => window.AndroidCar || null;
   function carSettings() {
     const c = car(); if (!c) return;
-    try { c.settings(JSON.stringify({ rate: prefs.rate, voice: prefs.vname || {}, chain: prefs.chain, gap: Math.round((+prefs.gap || 0) * 1000) })); } catch { /* ancienne appli */ }
+    try { c.settings(JSON.stringify({ rate: prefs.rate, voice: prefs.vname || {}, chain: prefs.chain, gap: Math.round((+prefs.gap || 0) * 1000), reading: carReading() })); } catch { /* ancienne appli */ }
   }
+  /** Livres lus sur le téléphone (les plus récents d'abord) : la voiture les met en tête de « En cours », au bon chapitre et au bon endroit. */
+  function carReading() {
+    if (!userId()) return [];
+    const r = rd(), out = [];
+    // livre ouvert en ce moment dans le lecteur : lu à l'instant (sa date d'ouverture ne bouge pas pendant la lecture)
+    const m = /^#\/books\/([^/]+)\/\d+/.exec(location.hash || ""), cur = m ? decodeURIComponent(m[1]) : null;
+    for (const id of Object.keys(r.open)) {
+      const n = P.last[id]; if (!Number.isInteger(n)) continue;
+      const sp = r.spot[id + "|" + n] || {};
+      out.push({ book: id, n, at: id === cur ? Date.now() : r.open[id], f: Math.max(0, Math.min(0.99, +sp.f || 0)) });
+    }
+    return out.sort((a, b) => b.at - a.at).slice(0, 10);
+  }
+  var carRTimer = null;
+  function carReadSoon() { try { if (!window.AndroidCar) return; clearTimeout(carRTimer); carRTimer = setTimeout(carSettings, 2000); } catch { /* */ } }
   const carV = b => String(b.version || "") + "~" + SPEECH_V + "~" + (upl(b) ? voiceOf(b) : cLang());      // texte adapté à l'écoute : nouvelles règles = livre à renvoyer
   const carVersion = b => { const c = car(); try { return c ? c.bookVersion(b.id) || "" : ""; } catch { return ""; } };
   /**

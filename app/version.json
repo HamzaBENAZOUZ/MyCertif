@@ -1,9 +1,9 @@
 {
-  "versionCode": 47,
-  "versionName": "3.26",
+  "versionCode": 48,
+  "versionName": "3.27",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Android Auto : les livres importés en PDF ou EPUB arrivent aussi dans la voiture. Ils apparaissent tout de suite (« en préparation »), sont préparés beaucoup plus vite (un seul téléchargement par livre) et la liste de la voiture se met à jour dès qu'un livre est prêt. Un message indique l'avancement.",
-    "en": "Android Auto: books imported from PDF or EPUB now reach the car too. They show up right away (“being prepared”), are prepared much faster (one download per book) and the car's list refreshes as soon as a book is ready. A message shows the progress."
+    "fr": "Android Auto : le livre que tu lis sur le téléphone apparaît en tête de l'onglet « En cours », au bon chapitre, avec le pourcentage lu. En le touchant dans la voiture, la lecture reprend à l'endroit où tu t'es arrêté sur le téléphone.",
+    "en": "Android Auto: the book you're reading on the phone now shows first in the “Now playing” tab, at the right chapter, with the percentage read. Tapping it in the car resumes where you stopped on the phone."
   }
 }
