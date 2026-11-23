@@ -1,9 +1,9 @@
 {
-  "versionCode": 54,
-  "versionName": "3.33",
+  "versionCode": 55,
+  "versionName": "3.34",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Livres : l'écran ne se verrouille plus pendant l'écoute en mode « 🚗 Lire sur ma voiture » (la 3.32 relâchait l'écran dans ce mode).",
-    "en": "Books: the screen no longer locks while listening in « 🚗 Play in my car » mode (3.32 released the screen in that mode)."
+    "fr": "Livres : les boutons des écouteurs et des kits Bluetooth (⏯ pause / lecture, ⏭ ⏮) commandent maintenant la lecture sur le téléphone. La voix du téléphone sortait du moteur vocal, Android envoyait donc ces boutons à une autre appli.",
+    "en": "Books: Bluetooth earbud and hands-free buttons (⏯ pause/play, ⏭ ⏮) now control phone playback. The phone voice came from the speech engine, so Android sent those buttons to another app."
   }
 }
