@@ -1,9 +1,9 @@
 {
-  "versionCode": 50,
-  "versionName": "3.29",
+  "versionCode": 51,
+  "versionName": "3.30",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Correctif lecture audio : si la voix naturelle ne produit aucun son au bout de 15 secondes, l'appli passe toute seule à la voix du téléphone (téléphone et Android Auto) au lieu de rester muette. Dans la voiture, un chapitre en cours de traduction ne fait plus de longs silences : il est lu en anglais en attendant la traduction.",
-    "en": "Audio fix: if the natural voice makes no sound within 15 seconds, the app switches to the phone's voice by itself (phone and Android Auto) instead of staying silent. In the car, a chapter being translated no longer has long silences: it is read in English until the translation is ready."
+    "fr": "Correctif voix : si la voix du téléphone ne démarre pas ou renvoie une erreur, l'appli la relance, réessaie avec la voix par défaut de la langue, et affiche un message (avec le code d'erreur) au lieu de rester muette. Même chose dans Android Auto.",
+    "en": "Voice fix: if the phone's voice doesn't start or returns an error, the app restarts it, retries with the language's default voice, and shows a message (with the error code) instead of staying silent. Same in Android Auto."
   }
 }
