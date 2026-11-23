@@ -1,9 +1,9 @@
 {
-  "versionCode": 46,
-  "versionName": "3.25",
+  "versionCode": 47,
+  "versionName": "3.26",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Android Auto : nouveau menu avec trois onglets. « En cours » pour reprendre, « Livres » avec tous tes livres et leurs chapitres, « Certifications » avec SPLK-1001, SPLK-1002, AWS SAA-C03 et CEH en quiz audio (question, temps pour réfléchir, réponse et explication). Tout est préparé automatiquement à l'ouverture de l'appli.",
-    "en": "Android Auto: new menu with three tabs. “Now playing” to resume, “Books” with all your books and their chapters, “Certifications” with SPLK-1001, SPLK-1002, AWS SAA-C03 and CEH as audio quizzes (question, time to think, answer and explanation). Everything is prepared automatically when the app opens."
+    "fr": "Android Auto : les livres importés en PDF ou EPUB arrivent aussi dans la voiture. Ils apparaissent tout de suite (« en préparation »), sont préparés beaucoup plus vite (un seul téléchargement par livre) et la liste de la voiture se met à jour dès qu'un livre est prêt. Un message indique l'avancement.",
+    "en": "Android Auto: books imported from PDF or EPUB now reach the car too. They show up right away (“being prepared”), are prepared much faster (one download per book) and the car's list refreshes as soon as a book is ready. A message shows the progress."
   }
 }
