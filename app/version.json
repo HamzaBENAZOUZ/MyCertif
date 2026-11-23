@@ -1,9 +1,9 @@
 {
-  "versionCode": 53,
-  "versionName": "3.32",
+  "versionCode": 54,
+  "versionName": "3.33",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Livres : nouveau bouton « 🚗 Lire sur ma voiture » (sous le titre du chapitre et dans la barre de lecture). Le son passe par la voiture et tu gardes la main sur le téléphone : texte, surlignage, pause, phrases. Il s'active tout seul quand le téléphone est branché sur Android Auto.",
-    "en": "Books: new « 🚗 Play in my car » button (under the chapter title and in the player bar). Sound goes through the car while you keep control on the phone: text, highlighting, pause, sentences. Turns on by itself when the phone is connected to Android Auto."
+    "fr": "Livres : l'écran ne se verrouille plus pendant l'écoute en mode « 🚗 Lire sur ma voiture » (la 3.32 relâchait l'écran dans ce mode).",
+    "en": "Books: the screen no longer locks while listening in « 🚗 Play in my car » mode (3.32 released the screen in that mode)."
   }
 }
