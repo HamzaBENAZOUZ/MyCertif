@@ -186,7 +186,9 @@ function speakText(text, lang = "en", rate = 1, done = () => {}, voiceId = "") {
 // L'appli signale une voix du téléphone en panne (moteur absent, voix non installée…) : message au lieu d'un silence.
 let ttsErrAt = 0;
 window.__ttsErr = msg => { if (Date.now() - ttsErrAt < 6000) return; ttsErrAt = Date.now(); toast("🔇 " + msg, "err"); };
-const TTS = { can: canSpeak, canFr: canSpeakFr, speak: speakText, voices: listVoices,
+// pause avant la prochaine phrase faite par l'appli : continue écran verrouillé (les minuteries de la page y sont très ralenties)
+const ttsGap = ms => { try { return !!(nativeTTS && typeof nativeTTS.setGap === "function" && nativeTTS.setGap(Math.round(ms))); } catch { return false; } };
+const TTS = { can: canSpeak, canFr: canSpeakFr, speak: speakText, voices: listVoices, gap: ttsGap,
   onVoices: fn => { if (canSpeak && !nativeTTS && speechSynthesis.addEventListener) speechSynthesis.addEventListener("voiceschanged", fn); }, stop: () => { if (nativeTTS) nativeTTS.stop(); else if (canSpeak) speechSynthesis.cancel(); } };
 /**
  * Bouton de lecture, dans la langue affichée (français : « Lire… », anglais : « Listen… »).
