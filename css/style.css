@@ -1322,3 +1322,6 @@ body { overflow-x: clip; }
 .aw-ls-t { flex: 1 1 180px; min-width: 0; overflow-wrap: anywhere; }
 .aw-ls-b { display: flex; gap: 6px; flex-shrink: 0; }
 .sum-btns a.btn, .sum-acts a.btn, .aw-ls-b a.btn, .aw-extra a.btn { text-decoration: none; }
+.sum-ch { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.sum-ch .sum-ct { margin: 0; flex: 1 1 200px; min-width: 0; }
+.sum-cert > .sum-ch { margin-bottom: 10px; }

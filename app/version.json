@@ -1,9 +1,9 @@
 {
-  "versionCode": 58,
-  "versionName": "3.37",
+  "versionCode": 59,
+  "versionName": "3.38",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Nouvel onglet « Résumé » en premier : tous les résumés de chapitres par certification, avec Lire et Écouter. AWS : résumés détaillés du livre de Neal Davis (10 chapitres) et section « Questions extraites des livres » (280 questions Clinton, 80 Neal Davis). Cursus AWS : phase passerelle sécurité entre la SAA et la SCS, et écoute des livres 40 min par jour en plus de la séance. Affichage ajusté aux petits écrans.",
-    "en": "New first tab “Summaries”: every chapter summary by certification, with Read and Listen. AWS: detailed summaries of the Neal Davis book (10 chapters) and a “Questions extracted from the books” section (280 Clinton, 80 Neal Davis questions). AWS path: security bridge phase between SAA and SCS, and 40 min of book listening a day on top of the session. Layout fixed on small screens."
+    "fr": "Onglet Résumé : bouton « Archiver » sur chaque cours (AWS, Splunk, CEH) pour le masquer. Les cours archivés se désarchivent dans Paramètres > Résumés archivés.",
+    "en": "Summaries tab: “Archive” button on each course (AWS, Splunk, CEH) to hide it. Archived courses can be unarchived in Settings > Archived summaries."
   }
 }
