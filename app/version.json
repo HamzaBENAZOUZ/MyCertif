@@ -1,9 +1,9 @@
 {
-  "versionCode": 59,
-  "versionName": "3.38",
+  "versionCode": 60,
+  "versionName": "3.39",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Onglet Résumé : bouton « Archiver » sur chaque cours (AWS, Splunk, CEH) pour le masquer. Les cours archivés se désarchivent dans Paramètres > Résumés archivés.",
-    "en": "Summaries tab: “Archive” button on each course (AWS, Splunk, CEH) to hide it. Archived courses can be unarchived in Settings > Archived summaries."
+    "fr": "Onglet Résumé : temps de lecture et d'écoute de chaque chapitre et de chaque cours, avec ce qui est déjà fait et ce qui reste. Barre du haut et barre du bas toujours entières dans l'écran, même avec une grande police.",
+    "en": "Summaries tab: reading and listening time for each chapter and course, with what is done and what is left. Top and bottom bars always fit the screen, even with a large font."
   }
 }

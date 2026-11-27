@@ -72,7 +72,7 @@ const L = {
     trDevice: "Traduction automatique sur le téléphone : le texte peut contenir des erreurs.",
     gap: "Pause entre les phrases (téléphone et voiture)", gapNone: "aucune", dec: ",",
     chain: "Enchaîner automatiquement le chapitre suivant", awake: "Garder l'écran allumé pendant l'écoute", backLib: "Bibliothèque",
-    sumTitle: "Résumés", sumSub: "Les résumés des chapitres, à lire ou à écouter, rangés par certification.", sumRead: "Lire", sumListen: "Écouter", sumCont: "Reprendre", sumOther: "Autres livres", sumEmpty: "Aucun résumé pour l'instant.", sumChN: "{n} chapitres", sumArch: "Archiver", sumArchOk: "« {c} » archivé. Pour le retrouver : Paramètres > Résumés archivés.", sumAllArch: "Tous les cours sont archivés. Tu peux les désarchiver dans Paramètres > Résumés archivés.",
+    sumTitle: "Résumés", sumSub: "Les résumés des chapitres, à lire ou à écouter, rangés par certification.", sumRead: "Lire", sumListen: "Écouter", sumCont: "Reprendre", sumOther: "Autres livres", sumEmpty: "Aucun résumé pour l'instant.", sumChN: "{n} chapitres", sumArch: "Archiver", sumTot: "Tout le cours", sumDone: "Déjà fait ≈ {d} ({p} %)", sumLeft: "Reste : 📖 {r} à lire · 🎧 {l} à écouter", sumArchOk: "« {c} » archivé. Pour le retrouver : Paramètres > Résumés archivés.", sumAllArch: "Tous les cours sont archivés. Tu peux les désarchiver dans Paramètres > Résumés archivés.",
     bgT: "Écoute écran éteint", bgOk: "Prêt : la lecture continue appli fermée ou téléphone verrouillé, avec la notification de lecture.",
     bgNotif: "Notifications coupées : la commande lecture / pause n'apparaîtra pas en haut de l'écran.", bgNotifB: "Autoriser les notifications",
     bgBat: "Le téléphone peut couper la lecture quand l'écran est éteint.", bgBatB: "Batterie sans restriction",
@@ -153,7 +153,7 @@ const L = {
     trDevice: "Machine translation on the phone: the text may contain mistakes.",
     gap: "Pause between sentences (phone and car)", gapNone: "none", dec: ".",
     chain: "Automatically continue with the next chapter", awake: "Keep the screen on while listening", backLib: "Library",
-    sumTitle: "Summaries", sumSub: "Chapter summaries to read or listen to, grouped by certification.", sumRead: "Read", sumListen: "Listen", sumCont: "Resume", sumOther: "Other books", sumEmpty: "No summaries yet.", sumChN: "{n} chapters", sumArch: "Archive", sumArchOk: "“{c}” archived. To get it back: Settings > Archived summaries.", sumAllArch: "Every course is archived. You can unarchive them in Settings > Archived summaries.",
+    sumTitle: "Summaries", sumSub: "Chapter summaries to read or listen to, grouped by certification.", sumRead: "Read", sumListen: "Listen", sumCont: "Resume", sumOther: "Other books", sumEmpty: "No summaries yet.", sumChN: "{n} chapters", sumArch: "Archive", sumTot: "Whole course", sumDone: "Done ≈ {d} ({p} %)", sumLeft: "Left: 📖 {r} to read · 🎧 {l} to listen", sumArchOk: "“{c}” archived. To get it back: Settings > Archived summaries.", sumAllArch: "Every course is archived. You can unarchive them in Settings > Archived summaries.",
     bgT: "Screen-off listening", bgOk: "Ready: reading goes on with the app closed or the phone locked, with the playback notification.",
     bgNotif: "Notifications are off: the play / pause control will not show at the top of the screen.", bgNotifB: "Allow notifications",
     bgBat: "The phone may stop reading when the screen is off.", bgBatB: "Unrestricted battery",
@@ -1084,6 +1084,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       return `<details class="panel sum-book" ${b.id === (SUM_OPEN || all[0]?.id) ? "open" : ""} data-sum-book="${esc(b.id)}">
         <summary><span class="sum-bt">${esc(pick(b, "title", ul))}</span>
           <span class="muted mono small">${b.author ? esc(b.author) + " · " : ""}${s.read}/${s.total} ${esc(t("read"))}</span></summary>
+        <div class="sum-eta mono small" data-sum-eta="${esc(b.id)}">${esc(t("etaWait"))}</div>
         <div class="row sum-acts">
           <a class="btn btn-primary btn-sm" href="#/books/${enc}/${n}">📖 ${esc(t("sumCont"))} · ${esc(t("chapter"))} ${n}</a>
           <button class="btn btn-ghost btn-sm" data-sum-listen="${esc(b.id)}|${n}">🎧 ${esc(t("sumListen"))} · ${esc(t("chapter"))} ${n}</button>
@@ -1092,7 +1093,8 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
           const x = pr[c.n] || {}, f = (r.spot[b.id + "|" + c.n] || {}).f || 0;
           return `<li class="sum-row${x.r ? " done" : ""}${c.n === n ? " cur" : ""}">
             <span class="bk-num mono">${c.n}</span>
-            <span class="bk-toc-t">${esc(pick(c, "title", ul))}${x.r ? ` <span class="bk-check">✓</span>` : f > 0.02 ? ` <span class="bk-toc-pct mono">${pctTxt(f)} %</span>` : ""}</span>
+            <span class="bk-toc-t">${esc(pick(c, "title", ul))}${x.r ? ` <span class="bk-check">✓</span>` : f > 0.02 ? ` <span class="bk-toc-pct mono">${pctTxt(f)} %</span>` : ""}
+              <br>${etaSpan(b, c.n)}</span>
             <span class="sum-btns">
               <a class="btn btn-ghost btn-xs" href="#/books/${enc}/${c.n}" aria-label="${esc(t("sumRead"))} ${c.n}">📖 ${esc(t("sumRead"))}</a>
               <button class="btn btn-ghost btn-xs" data-sum-listen="${esc(b.id)}|${c.n}" aria-label="${esc(t("sumListen"))} ${c.n}">🎧 ${esc(t("sumListen"))}</button>
@@ -1114,7 +1116,29 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
           <button class="btn btn-ghost btn-xs" data-sum-arch="${g.k}">🗄️ ${esc(t("sumArch"))}</button></div>${g.list.map(bookBlock).join("")}</section>`).join("")
         : `<p class="muted">${esc(t(groups.length ? "sumAllArch" : "sumEmpty"))}</p>`}
     </div>`;
-    root.querySelectorAll("details[data-sum-book]").forEach(d => d.addEventListener("toggle", () => { if (d.open) SUM_OPEN = d.dataset.sumBook; }));
+    // temps de lecture / d'écoute : calculés quand le cours est ouvert (le texte des chapitres est chargé une fois, puis gardé)
+    const fillSum = d => {
+      if (d.dataset.filled) return; d.dataset.filled = "1";
+      fillEta(d);
+      const b = book(d.dataset.sumBook), el = d.querySelector("[data-sum-eta]"); if (!b || !el) return;
+      Promise.all(b.chapters.map(async c => { const w = wcGet(b, c.n); if (w != null) return w; const ch = await loadChapter(b, c.n); return ch ? chWords(b, ch) : 0; }))
+        .then(ws => {
+          if (!el.isConnected) return;
+          const pr = P.books[b.id] || {}, r = rd();
+          let tot = 0, done = 0;
+          b.chapters.forEach((c, i) => { const w = ws[i] || 0; tot += w; done += w * (pr[c.n] && pr[c.n].r ? 1 : Math.min(0.99, (r.spot[b.id + "|" + c.n] || {}).f || 0)); });
+          if (!tot) { el.textContent = ""; return; }
+          const R = w => fmtDur(w < 1 ? 0 : mins(w / WPM_READ)), Lh = w => fmtDur(w < 1 ? 0 : mins(w / (WPM_LISTEN * prefs.rate))), left = tot - done;
+          el.innerHTML = `<div>${etaLine(tot, t("sumTot"))}</div>
+            <div class="sum-prog"><span class="bar"><span style="width:${Math.round(done / tot * 100)}%"></span></span>
+              ${esc(t("sumDone", { d: R(done) + " / 🎧 " + Lh(done), p: Math.round(done / tot * 100) }))}</div>
+            <div>${esc(t("sumLeft", { r: R(left), l: Lh(left) }))}</div>`;
+        }).catch(() => { if (el.isConnected) el.textContent = ""; });
+    };
+    root.querySelectorAll("details[data-sum-book]").forEach(d => {
+      if (d.open) fillSum(d);
+      d.addEventListener("toggle", () => { if (d.open) { SUM_OPEN = d.dataset.sumBook; fillSum(d); } });
+    });
     root.querySelectorAll("[data-sum-arch]").forEach(btn => btn.onclick = () => {
       const k = btn.dataset.sumArch; setSumArch(k, true); toast(t("sumArchOk", { c: sumName(k) }), "ok"); summaries(el);
     });
