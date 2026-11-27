@@ -1274,3 +1274,51 @@ html.tv .bk-selmenu { display: none; }
   .aw-task { grid-template-columns: 28px 1fr; }
   .aw-task .sv-notecell { grid-column: 2; }
 }
+
+/* 3.37 : rien ne doit dépasser la largeur de l'écran (téléphone, tablette, grande police Android) */
+body { overflow-x: clip; }
+#app, .container { min-width: 0; }
+.btn { max-width: 100%; }
+@media (max-width: 600px) {
+  .btn { white-space: normal; overflow-wrap: anywhere; }
+  .exam-panel > * { min-width: 0; max-width: 100%; }
+  img, video, canvas, table, pre { max-width: 100%; }
+}
+@media (max-width: 420px) {
+  .actions-panel { grid-template-columns: minmax(0, 1fr); }
+  .action select, .action input { max-width: 100%; min-width: 0; width: 100%; }
+  .sv-grid, .aw-charts { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* 3.37 : onglet Résumé (6 onglets dans la barre du bas) */
+.main-nav a { min-width: 0; }
+.main-nav a span { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 380px) { .main-nav a { font-size: .6rem; padding: 7px 2px; } .main-nav svg { width: 20px; height: 20px; } }
+.bk-sum .hero h1 { margin: .2em 0; }
+.sum-cert { margin: 22px 0; }
+.sum-ct { font-size: 1rem; margin: 0 0 10px; color: var(--accent, inherit); }
+.sum-book { padding: 12px 14px; margin: 10px 0; }
+.sum-book > summary { cursor: pointer; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; list-style: none; }
+.sum-book > summary::-webkit-details-marker { display: none; }
+.sum-book > summary::before { content: "▸"; color: var(--muted); }
+.sum-book[open] > summary::before { content: "▾"; }
+.sum-bt { font-weight: 600; min-width: 0; overflow-wrap: anywhere; flex: 1 1 200px; }
+.sum-acts { margin: 10px 0 6px; flex-wrap: wrap; gap: 8px; }
+.sum-toc { margin: 8px 0 0; padding: 0; list-style: none; }
+.sum-row { display: flex; align-items: center; gap: 10px; padding: 8px 4px; border-top: 1px solid var(--border, rgba(127,127,127,.2)); }
+.sum-row.cur { background: rgba(237, 0, 128, .06); border-radius: 8px; }
+.sum-row .bk-toc-t { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.sum-btns { display: flex; gap: 6px; flex-shrink: 0; }
+@media (max-width: 480px) {
+  .sum-row { flex-wrap: wrap; }
+  .sum-btns { width: 100%; justify-content: flex-end; }
+}
+.extract-head { margin: 28px 0 4px; font-size: 1.1rem; }
+/* 3.37 : cursus AWS, écoute en parallèle */
+.aw-listen { margin: 8px 0 2px; padding: 8px 10px; border-radius: 10px; border: 1px dashed rgba(127,127,127,.35); background: rgba(80, 140, 255, .05); }
+.aw-ls-h { margin-bottom: 4px; }
+.aw-ls-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; flex-wrap: wrap; }
+.aw-ls-row.done .aw-ls-t { opacity: .6; text-decoration: line-through; }
+.aw-ls-t { flex: 1 1 180px; min-width: 0; overflow-wrap: anywhere; }
+.aw-ls-b { display: flex; gap: 6px; flex-shrink: 0; }
+.sum-btns a.btn, .sum-acts a.btn, .aw-ls-b a.btn, .aw-extra a.btn { text-decoration: none; }

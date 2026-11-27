@@ -15,8 +15,8 @@ const IN_APP = !!window.AndroidTTS;
 
 const CFG = window.SPLUNK_CONFIG || {};
 const PASS = CFG.PASS_MARK || 70;
-const DOMAIN_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35];  // 1-8 : SPLK-1001, 11-20 : SPLK-1002, 31-32 : AWS SAA-C03 (parties I et II du livre), 33-35 : CEH (parties I à III)
-const dNum = d => (d > 32 ? d - 32 : d > 30 ? d - 30 : d > 10 ? d - 10 : d);   // numéro de thème affiché
+const DOMAIN_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31, 32, 36, 37, 33, 34, 35];  // 1-8 : SPLK-1001, 11-20 : SPLK-1002, 31-32 : AWS SAA-C03 (parties I et II du livre), 36-37 : AWS questions extraites des livres (Clinton, Neal Davis), 33-35 : CEH (parties I à III)
+const dNum = d => (d === 36 || d === 37 ? "Q" + (d - 35) : d > 32 ? d - 32 : d > 30 ? d - 30 : d > 10 ? d - 10 : d);   // numéro de thème affiché
 /** Secondes par question à l'examen : SPLK = 60 questions en 60 minutes ; AWS SAA-C03 = 65 questions en 130 minutes ; CEH = 125 questions en 4 heures. */
 const secPerQ = sec => (sec === "ceh" ? 115 : sec === "aws" ? 120 : 60);
 const SECTIONS = ["guide", "practice", "aws", "ceh"];
@@ -243,6 +243,8 @@ function chLabel(id) {
   if (id === 300) return "CEH_TEST";
   if (id > 300) return `CEH_CH${pad(id - 300)}`;
   if (id === 200) return "AWS_TEST";
+  if (id > 240 && id < 300) return `NEAL_${pad(id - 240)}`;
+  if (id > 220 && id < 300) return `CLINTON_CH${pad(id - 220)}`;
   if (id > 200) return `AWS_CH${pad(id - 200)}`;
   if (id <= 9) return `MOD_${pad(id)}`;
   if (id <= 100) return `PLUS_T${id - 10}`;
@@ -296,6 +298,7 @@ function rerender() {
   if (state.view === "history") return renderHistory();
   if (state.view === "suivi") return renderSuiviView();
   if (state.view === "books") return renderBooksView();
+  if (state.view === "resumes") return renderResumesView();
   if (state.view === "home") return renderHome();
 }
 
@@ -352,6 +355,8 @@ const CAR_PAUSE = "@pause:5000";        // temps pour réfléchir avant la répo
 function carChLabel(id, fr) {
   if (id === 300 || id === 200) return fr ? "Examen blanc" : "Practice exam";
   if (id > 300) return (fr ? "Chapitre " : "Chapter ") + (id - 300);
+  if (id > 240 && id < 300) return "Neal Davis, " + (fr ? "chapitre " : "chapter ") + (id - 240);
+  if (id > 220 && id < 300) return "Clinton, " + (fr ? "chapitre " : "chapter ") + (id - 220);
   if (id > 200) return (fr ? "Chapitre " : "Chapter ") + (id - 200);
   if (id > 100) return (fr ? "Thème " : "Topic ") + (id - 100);
   if (id > 10) return (fr ? "Thème " : "Topic ") + (id - 10);
@@ -425,6 +430,12 @@ function renderBooksView() {
   state.view = "books";
   books().render(app, location.hash);
 }
+/** Onglet « Résumé » (premier onglet) : résumés des chapitres par certification, boutons Lire et Écouter. */
+function renderResumesView() {
+  stopTimer();
+  state.view = "resumes";
+  books().summaries(app);
+}
 /** Barre de navigation principale (Entraînement / Suivi / Historique) : onglet actif, masquée pendant un quiz. */
 function paintNav() {
   const nav = document.getElementById("main-nav"); if (!nav) return;
@@ -432,11 +443,11 @@ function paintNav() {
   nav.hidden = !logged;
   document.body.classList.toggle("has-nav", logged && state.view !== "quiz");
   document.body.classList.toggle("in-quiz", state.view === "quiz");
-  const cur = ["suivi", "history", "books", "settings"].includes(state.view) ? state.view : "home";
+  const cur = ["resumes", "suivi", "history", "books", "settings"].includes(state.view) ? state.view : "home";
   nav.querySelectorAll("[data-main]").forEach(a => {
     a.setAttribute("aria-current", a.dataset.main === cur ? "page" : "false");
-    const k = { home: "nav.train", suivi: "nav.suivi", history: "nav.history", books: "nav.books", settings: "nav.settings" }[a.dataset.main];
-    const lab = a.querySelector("span"); if (lab) lab.textContent = getLang() === "fr" ? { "nav.train": "Entraînement", "nav.suivi": "Suivi", "nav.history": "Historique", "nav.books": "Books", "nav.settings": "Paramètres" }[k] : { "nav.train": "Practice", "nav.suivi": "Tracker", "nav.history": "History", "nav.books": "Books", "nav.settings": "Settings" }[k];
+    const k = { resumes: "nav.sum", home: "nav.train", suivi: "nav.suivi", history: "nav.history", books: "nav.books", settings: "nav.settings" }[a.dataset.main];
+    const lab = a.querySelector("span"); if (lab) lab.textContent = getLang() === "fr" ? { "nav.sum": "Résumé", "nav.train": "Entraînement", "nav.suivi": "Suivi", "nav.history": "Historique", "nav.books": "Books", "nav.settings": "Paramètres" }[k] : { "nav.sum": "Summaries", "nav.train": "Practice", "nav.suivi": "Tracker", "nav.history": "History", "nav.books": "Books", "nav.settings": "Settings" }[k];
   });
 }
 
@@ -736,6 +747,7 @@ function route() {
   if (h === "exams" || h.startsWith("exams/")) return renderExamsView();
   if (h === "suivi") return renderSuiviView();
   if (h === "books" || h.startsWith("books/")) return renderBooksView();
+  if (h === "resumes") return renderResumesView();
   renderHome();
 }
 const go = h => { if (location.hash === `#/${h}`) route(); else location.hash = `#/${h}`; };
@@ -914,10 +926,11 @@ function renderHome() {
     if (!chs.length) return "";
     const cards = chs.map(card).join("");
     const dq = state.questions.filter(q => chs.some(c => c.id === q.chapter_id)).length;
-    return `
+    const extractHead = d === 36 ? `<h2 class="extract-head mono">${esc(t("home.extracted"))}</h2><p class="muted small">${esc(t("home.extractedDesc"))}</p>` : "";
+    return `${extractHead}
     <section class="domain">
       <div class="domain-head">
-        <h2><span class="mono accent">T${dNum(d)}</span> ${esc(t("domain." + d))}</h2>
+        <h2><span class="mono accent">${typeof dNum(d) === "string" ? dNum(d) : "T" + dNum(d)}</span> ${esc(t("domain." + d))}</h2>
         <button class="btn btn-ghost btn-sm" data-start-domain="${d}">${esc(t("home.domainQuiz", { n: Math.min(dq, 30) }))}</button>
       </div>
       <div class="chapter-grid">${cards}</div>
