@@ -730,8 +730,8 @@ async function refreshProgress() {
 
 function route() {
   xpStop();
-  stopSpeak();
-  if (state.books) state.books.stop();
+  if (speakingId) stopSpeak();                 // seulement la lecture d'une question : l'écoute d'un livre continue
+  if (state.books) (state.books.leave || state.books.stop)();
   setTimeout(paintNav, 0);
   if (!state.session || !state.chapters.length) return;
   const h = location.hash.replace(/^#\/?/, "");
