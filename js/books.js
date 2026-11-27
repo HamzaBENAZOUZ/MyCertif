@@ -72,6 +72,7 @@ const L = {
     trDevice: "Traduction automatique sur le téléphone : le texte peut contenir des erreurs.",
     gap: "Pause entre les phrases (téléphone et voiture)", gapNone: "aucune", dec: ",",
     chain: "Enchaîner automatiquement le chapitre suivant", awake: "Garder l'écran allumé pendant l'écoute", backLib: "Bibliothèque",
+    sumTitle: "Résumés", sumSub: "Les résumés des chapitres, à lire ou à écouter, rangés par certification.", sumRead: "Lire", sumListen: "Écouter", sumCont: "Reprendre", sumOther: "Autres livres", sumEmpty: "Aucun résumé pour l'instant.", sumChN: "{n} chapitres",
     bgT: "Écoute écran éteint", bgOk: "Prêt : la lecture continue appli fermée ou téléphone verrouillé, avec la notification de lecture.",
     bgNotif: "Notifications coupées : la commande lecture / pause n'apparaîtra pas en haut de l'écran.", bgNotifB: "Autoriser les notifications",
     bgBat: "Le téléphone peut couper la lecture quand l'écran est éteint.", bgBatB: "Batterie sans restriction",
@@ -152,6 +153,7 @@ const L = {
     trDevice: "Machine translation on the phone: the text may contain mistakes.",
     gap: "Pause between sentences (phone and car)", gapNone: "none", dec: ".",
     chain: "Automatically continue with the next chapter", awake: "Keep the screen on while listening", backLib: "Library",
+    sumTitle: "Summaries", sumSub: "Chapter summaries to read or listen to, grouped by certification.", sumRead: "Read", sumListen: "Listen", sumCont: "Resume", sumOther: "Other books", sumEmpty: "No summaries yet.", sumChN: "{n} chapters",
     bgT: "Screen-off listening", bgOk: "Ready: reading goes on with the app closed or the phone locked, with the playback notification.",
     bgNotif: "Notifications are off: the play / pause control will not show at the top of the screen.", bgNotifB: "Allow notifications",
     bgBat: "The phone may stop reading when the screen is off.", bgBatB: "Unrestricted battery",
@@ -1056,6 +1058,63 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     if (canCast() && (canDl || downloaded(b))) setCastAction({ label: t("tvBook", { t: pick(b, "title", ul) }), run: btn => toTv(b, n, btn) });
     if (upl(b)) bookSource(b);
   }
+
+  /* ---------------- onglet « Résumé » : résumés des chapitres par certification, à lire ou écouter ---------------- */
+  const SUM_CERTS = [
+    { k: "aws", fr: "AWS Solutions Architect Associate (SAA-C03)", en: "AWS Solutions Architect Associate (SAA-C03)", ids: ["aws-saa-c03", "aws-neal-davis"] },
+    { k: "splunk", fr: "Splunk (SPLK-1001 / SPLK-1002)", en: "Splunk (SPLK-1001 / SPLK-1002)", ids: ["splunk-core-companion", "mastering-splunk"] },
+    { k: "ceh", fr: "Certified Ethical Hacker (CEH)", en: "Certified Ethical Hacker (CEH)", ids: ["ceh-walker"] },
+  ];
+  async function summaries(el) {
+    root = el; stop(); setCastAction(null);
+    root.innerHTML = `<div class="boot"><p class="mono">&gt; resumes<span class="cursor">_</span></p></div>`;
+    try { await loadLib(); } catch (e) {
+      console.error(e);
+      root.innerHTML = `<section class="panel error-panel"><h2 class="mono">${esc(t("loadErr"))}</h2><p>${esc(e.message || String(e))}</p></section>`;
+      return;
+    }
+    const ul = uiLang(), r = rd(), all = lib || [];
+    const bookBlock = b => {
+      const s = stats(b), n = nextChapter(b), pr = P.books[b.id] || {}, enc = encodeURIComponent(b.id);
+      return `<details class="panel sum-book" ${b.id === (SUM_OPEN || all[0]?.id) ? "open" : ""} data-sum-book="${esc(b.id)}">
+        <summary><span class="sum-bt">${esc(pick(b, "title", ul))}</span>
+          <span class="muted mono small">${b.author ? esc(b.author) + " · " : ""}${s.read}/${s.total} ${esc(t("read"))}</span></summary>
+        <div class="row sum-acts">
+          <a class="btn btn-primary btn-sm" href="#/books/${enc}/${n}">📖 ${esc(t("sumCont"))} · ${esc(t("chapter"))} ${n}</a>
+          <button class="btn btn-ghost btn-sm" data-sum-listen="${esc(b.id)}|${n}">🎧 ${esc(t("sumListen"))} · ${esc(t("chapter"))} ${n}</button>
+        </div>
+        <ol class="bk-toc sum-toc">${b.chapters.map(c => {
+          const x = pr[c.n] || {}, f = (r.spot[b.id + "|" + c.n] || {}).f || 0;
+          return `<li class="sum-row${x.r ? " done" : ""}${c.n === n ? " cur" : ""}">
+            <span class="bk-num mono">${c.n}</span>
+            <span class="bk-toc-t">${esc(pick(c, "title", ul))}${x.r ? ` <span class="bk-check">✓</span>` : f > 0.02 ? ` <span class="bk-toc-pct mono">${pctTxt(f)} %</span>` : ""}</span>
+            <span class="sum-btns">
+              <a class="btn btn-ghost btn-xs" href="#/books/${enc}/${c.n}" aria-label="${esc(t("sumRead"))} ${c.n}">📖 ${esc(t("sumRead"))}</a>
+              <button class="btn btn-ghost btn-xs" data-sum-listen="${esc(b.id)}|${c.n}" aria-label="${esc(t("sumListen"))} ${c.n}">🎧 ${esc(t("sumListen"))}</button>
+            </span></li>`;
+        }).join("")}</ol>
+      </details>`;
+    };
+    const known = new Set(SUM_CERTS.flatMap(c => c.ids));
+    const groups = SUM_CERTS.map(c => ({ name: c[ul], list: c.ids.map(id => all.find(b => b.id === id)).filter(Boolean) }))
+      .filter(g => g.list.length);
+    // livres fournis avec l'appli mais pas encore classés (les livres importés ne sont pas des résumés)
+    const rest = all.filter(b => !known.has(b.id) && !upl(b) && !/^u-/.test(b.id));
+    if (rest.length) groups.push({ name: t("sumOther"), list: rest });
+    root.innerHTML = `<div class="bk-sum">
+      <section class="hero"><p class="mono kicker">&gt; resumes --lire --ecouter</p><h1>${esc(t("sumTitle"))}</h1>
+        <p class="muted">${esc(t("sumSub"))}</p></section>
+      ${groups.length ? groups.map(g => `<section class="sum-cert"><h2 class="mono sum-ct">${esc(g.name)}</h2>${g.list.map(bookBlock).join("")}</section>`).join("")
+        : `<p class="muted">${esc(t("sumEmpty"))}</p>`}
+    </div>`;
+    root.querySelectorAll("details[data-sum-book]").forEach(d => d.addEventListener("toggle", () => { if (d.open) SUM_OPEN = d.dataset.sumBook; }));
+    root.querySelectorAll("[data-sum-listen]").forEach(btn => btn.onclick = () => {
+      const [id, n] = btn.dataset.sumListen.split("|");
+      try { sessionStorage.setItem("bk-auto", id + "|" + n + "|r"); } catch { /* */ }
+      location.hash = `#/books/${encodeURIComponent(id)}/${n}`;
+    });
+  }
+  let SUM_OPEN = null;
 
   /** Fenêtre de confirmation avant de supprimer un livre (tous les livres, importés ou non). */
   function confirmDelete(b) {
@@ -2266,7 +2325,8 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       prev: () => player && go(player.i - 1),
     };
     let auto = null; try { auto = sessionStorage.getItem("bk-auto"); } catch { /* */ }
-    if (auto === key) { try { sessionStorage.removeItem("bk-auto"); } catch { /* */ } player.i = 0; open(); }
+    // « bk-auto » = id|n : enchaînement, depuis le début ; id|n|r : bouton Écouter de l'onglet Résumé, reprise où l'écoute s'était arrêtée
+    if (auto === key || auto === key + "|r") { try { sessionStorage.removeItem("bk-auto"); } catch { /* */ } if (auto === key) player.i = 0; open(); }
   }
   function stop() {
     mediaCtl = null;
@@ -2355,7 +2415,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   }
   const nextOf = (b, n) => { const i = b.chapters.findIndex(c => c.n === n); return b.chapters[i + 1] && b.chapters[i + 1].n; };
 
-  return { render, sync, forget, stop, carSyncAll,
+  return { render, summaries, sync, forget, stop, carSyncAll,
     // onglet Paramètres : mêmes préférences de lecture que le lecteur
     prefs: () => prefs, RATES: RATE_PRESETS, GAPS,
     setPref: (k, v) => { prefs[k] = k === "rate" ? clampRate(v) : k === "font" ? clampBf(v) : v; savePrefs(); }, BF_PRE,

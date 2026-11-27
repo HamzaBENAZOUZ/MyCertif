@@ -6,6 +6,8 @@ const DOMAIN_OF = {1:1,2:1,3:2,4:3,5:4,6:5,7:6,8:7,9:8,     // modules du cours 
   11:1,12:2,13:3,14:4,15:5,16:6,17:7,18:8,                    // questions originales SPLK-1001 par thème
   101:11,102:12,103:13,104:14,105:15,106:16,107:17,108:18,109:19,110:20,   // SPLK-1002 : thèmes 11-20 (= 1 à 10)
   201:31,202:31,203:31,204:31,205:31,206:31,207:31,208:31,209:31,210:32,211:32,212:32,213:32,  // AWS SAA-C03 : parties I et II (200 = test d'évaluation)
+  221:36,222:36,223:36,224:36,225:36,226:36,227:36,228:36,229:36,230:36,231:36,232:36,233:36,   // AWS : questions de fin de chapitre du livre Clinton
+  241:37,242:37,243:37,244:37,245:37,246:37,247:37,248:37,249:37,250:37,   // AWS : quiz du livre Neal Davis
   301:33,302:33,303:33,304:33,305:33,306:34,307:34,308:34,309:34,310:34,311:35,312:35,313:35,314:35};  // CEH : parties I à III (300 = examen blanc)
 
 // Copie locale des quiz sauvegardés et des marques : ces fonctions marchent même si les tables

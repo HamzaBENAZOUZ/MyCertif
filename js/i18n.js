@@ -219,6 +219,10 @@ const DICT = {
     "domain.33": "Partie I – Fondamentaux, reconnaissance et piratage des systèmes",
     "domain.34": "Partie II – Web, sans-fil, mobile, cloud et malwares",
     "domain.35": "Partie III – Cryptographie, ingénierie sociale, IA et test d'intrusion",
+    "domain.36": "Livre Clinton – questions de fin de chapitre",
+    "domain.37": "Livre Neal Davis – quiz des chapitres",
+    "home.extracted": "📚 Questions extraites des livres",
+    "home.extractedDesc": "Les questions de révision des deux livres AWS, chapitre par chapitre, en français et en anglais. Les erreurs du corrigé et les faits dépassés sont signalés dans l'explication.",
   },
   en: {
     "boot.init": "booting terminal",
@@ -439,6 +443,10 @@ const DICT = {
     "domain.33": "Part I – Foundations, Reconnaissance and System Hacking",
     "domain.34": "Part II – Web, Wireless, Mobile, Cloud and Malware",
     "domain.35": "Part III – Cryptography, Social Engineering, AI and the Pen Test",
+    "domain.36": "Clinton book – end-of-chapter review questions",
+    "domain.37": "Neal Davis book – chapter quizzes",
+    "home.extracted": "📚 Questions extracted from the books",
+    "home.extractedDesc": "The review questions of both AWS books, chapter by chapter, in English and French. Answer-key errors and outdated facts are flagged in the explanation.",
   },
 };
 

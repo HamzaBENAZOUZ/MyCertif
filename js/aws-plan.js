@@ -44,22 +44,23 @@ const SAA_PLAN = [
   { ph: 6, secs: [27], ch: [204] }, { ph: 6, secs: [28], ch: [210] }, { ph: 6, secs: [29, 30], ch: [211] }, { ph: 6, secs: [31], ch: [213] },
 ];
 const SCS_PLAN = [
-  { ph: 9, secs: [1, 2, 3], ch: [207] }, { ph: 9, secs: [4] },
-  { ph: 10, secs: [5], ch: [204] }, { ph: 10, secs: [6], ch: [206] },
-  { ph: 11, secs: [7], ch: [212] }, { ph: 11, secs: [8, 9] },
+  { ph: 10, secs: [1, 2, 3], ch: [207] }, { ph: 10, secs: [4] },
+  { ph: 11, secs: [5], ch: [204] }, { ph: 11, secs: [6], ch: [206] },
+  { ph: 12, secs: [7], ch: [212] }, { ph: 12, secs: [8, 9] },
 ];
 const PHASES = {
   1: ["SAA 1 · Fondamentaux : IAM, EC2", "SAA 1 · Basics: IAM, EC2"], 2: ["SAA 2 · Haute dispo, RDS, Route 53", "SAA 2 · HA, RDS, Route 53"],
   3: ["SAA 3 · S3, CloudFront, stockage", "SAA 3 · S3, CloudFront, storage"], 4: ["SAA 4 · Découplage, conteneurs, serverless", "SAA 4 · Decoupling, containers, serverless"],
   5: ["SAA 5 · Data, monitoring, sécurité", "SAA 5 · Data, monitoring, security"], 6: ["SAA 6 · VPC, DR, architectures", "SAA 6 · VPC, DR, architectures"],
   7: ["SAA 7 · Examens blancs", "SAA 7 · Practice exams"], 8: ["Examen SAA-C03", "SAA-C03 exam"],
-  9: ["SCS 1 · Détection, réponse aux incidents", "SCS 1 · Detection, incident response"], 10: ["SCS 2 · Infra, IAM", "SCS 2 · Infrastructure, IAM"],
-  11: ["SCS 3 · Données, gouvernance", "SCS 3 · Data, governance"], 12: ["SCS 4 · Examens blancs", "SCS 4 · Practice exams"], 13: ["Examen SCS-C03", "SCS-C03 exam"],
+  9: ["Passerelle sécurité : IAM, KMS, CloudTrail, VPC", "Security bridge: IAM, KMS, CloudTrail, VPC"],
+  10: ["SCS 1 · Détection, réponse aux incidents", "SCS 1 · Detection, incident response"], 11: ["SCS 2 · Infra, IAM", "SCS 2 · Infrastructure, IAM"],
+  12: ["SCS 3 · Données, gouvernance", "SCS 3 · Data, governance"], 13: ["SCS 4 · Examens blancs", "SCS 4 · Practice exams"], 14: ["Examen SCS-C03", "SCS-C03 exam"],
 };
 const TYPES = ["cours", "qcm", "blanc", "revision", "examen"];
 const TYPE_L = { cours: ["Cours", "Course"], qcm: ["QCM MyCertif", "MyCertif quiz"], blanc: ["Examen blanc", "Practice exam"], revision: ["Révision", "Review"], examen: ["Examen", "Exam"] };
 
-// Tâche : { id, cert, ph, type, min, fr, en, src, ch?, long?, flex?, pt?, exam? }
+// Tâche : { id, cert, ph, type, min, fr, en, src, ch?, bk?: [livre, chapitre], long?, flex?, pt?, exam? }
 function buildTasks() {
   const T = [];
   const add = t => T.push(t);
@@ -128,21 +129,43 @@ function buildTasks() {
   add({ id: "saa-exam", cert: "saa", ph: 8, type: "examen", min: 160, long: true, exam: "saa",
     fr: "PASSAGE de l'examen AWS SAA-C03 (65 Q, 130 min + 30 min ESL si demandé)", en: "SAA-C03 EXAM (65 Q, 130 min + 30 min ESL if requested)", src: "Pearson VUE · 150 $" });
 
+  /* ===== Passerelle sécurité (entre l'examen SAA et le cours SCS, ~2 semaines au rythme Normal) ===== */
+  const pont = (id, type, min, fr, en, src, more = {}) => add({ id: "pont-" + id, cert: "pont", ph: 9, type, min, fr, en, src, ...more });
+  pont("neal9a", "cours", 60, "Lire (ou écouter) le résumé Neal Davis « Sécurité, identité et conformité », parties 1 à 8 : IAM, stratégies, logique d'évaluation, STS, accès entre comptes, Directory Service, Cognito",
+    "Read (or listen to) the Neal Davis summary “Security, Identity & Compliance”, parts 1 to 8: IAM, policies, evaluation logic, STS, cross-account access, Directory Service, Cognito", "MyCertif · Books · Neal Davis ch. 9", { bk: ["aws-neal-davis", 9] });
+  pont("neal9b", "cours", 60, "Suite du résumé Neal Davis, parties 9 à 18 : Inspector, GuardDuty, ACM, KMS, CloudHSM, Secrets Manager, WAF, Shield, RAM",
+    "Neal Davis summary continued, parts 9 to 18: Inspector, GuardDuty, ACM, KMS, CloudHSM, Secrets Manager, WAF, Shield, RAM", "MyCertif · Books · Neal Davis ch. 9", { bk: ["aws-neal-davis", 9] });
+  pont("q249", "qcm", 30, "Quiz Neal Davis « Sécurité » (questions extraites du livre) : viser 100 %, relire l'explication de chaque erreur",
+    "Neal Davis “Security” quiz (questions extracted from the book): aim for 100 %, re-read the explanation of each mistake", "MyCertif · NEAL_09", { ch: 249 });
+  pont("iam", "cours", 75, "IAM en profondeur : refus explicite, limites de permissions, SCP, stratégies de session. Hands-on : rôle entre deux comptes avec ID externe + une limite de permissions, tester avec le simulateur de stratégies",
+    "IAM in depth: explicit deny, permissions boundaries, SCPs, session policies. Hands-on: cross-account role with an external ID + a permissions boundary, test with the policy simulator", "AWS Free Tier · IAM Policy Simulator");
+  pont("q226", "qcm", 30, "QCM Clinton chapitre 6 (IAM) en mode mélangé", "Clinton chapter 6 quiz (IAM), shuffled", "MyCertif · CLINTON_CH06", { ch: 226 });
+  pont("kms", "cours", 75, "KMS : stratégies de clé vs IAM, octrois, chiffrement d'enveloppe, rotation, clés multi-régions. Hands-on : clé gérée par le client, chiffrer un bucket S3 et un volume EBS, retrouver les appels Decrypt dans CloudTrail",
+    "KMS: key policies vs IAM, grants, envelope encryption, rotation, multi-Region keys. Hands-on: customer managed key, encrypt an S3 bucket and an EBS volume, find the Decrypt calls in CloudTrail", "AWS Free Tier · KMS");
+  pont("trail", "cours", 60, "Journalisation : trail multi-régions, événements de données S3, validation d'intégrité, requête Athena sur les journaux ; filtre de métrique CloudWatch + alarme sur une connexion root",
+    "Logging: multi-Region trail, S3 data events, log file validation, Athena query on the logs; CloudWatch metric filter + alarm on a root sign-in", "AWS Free Tier · CloudTrail, CloudWatch");
+  pont("q245", "qcm", 20, "Quiz Neal Davis « Outils de gestion » (CloudTrail, Config, CloudWatch)", "Neal Davis “Management Tools” quiz (CloudTrail, Config, CloudWatch)", "MyCertif · NEAL_05", { ch: 245 });
+  pont("vpc", "cours", 75, "Sécurité réseau VPC : groupes de sécurité vs NACL, flow logs, points de terminaison et leurs stratégies, Network Firewall. Hands-on : flow logs vers CloudWatch Logs et requête Logs Insights sur les rejets",
+    "VPC network security: security groups vs NACLs, flow logs, endpoints and endpoint policies, Network Firewall. Hands-on: flow logs to CloudWatch Logs and a Logs Insights query on rejects", "AWS Free Tier · VPC");
+  pont("q232", "qcm", 30, "QCM Clinton chapitre 12 (architectures sécurisées) en mode mélangé", "Clinton chapter 12 quiz (secure architectures), shuffled", "MyCertif · CLINTON_CH12", { ch: 232 });
+  pont("bilan", "revision", 45, "Bilan passerelle : refaire les erreurs des quiz de sécurité, lister les services encore flous (ils seront le fil rouge du cours SCS)",
+    "Bridge check: redo the mistakes of the security quizzes, list the services still unclear (they become the thread of the SCS course)", "MyCertif · Mes erreurs", { flex: true });
+
   /* ===== SCS-C03 ===== */
-  add({ id: "scs-mini", cert: "scs", ph: 9, type: "blanc", min: 70, pt: "mini",
+  add({ id: "scs-mini", cert: "scs", ph: 10, type: "blanc", min: 70, pt: "mini",
     fr: "Diagnostic : Mini Practice Test SCS-C03 (35 Q, ~70 min) pour voir ce que la SAA t'a déjà apporté", en: "Diagnostic: SCS-C03 Mini Practice Test (35 Q, ~70 min) to see what the SAA already gave you",
     src: "Practice Exams SCS-C03 (Maarek & Singh)" });
   course("scs", SCS, SCS_PLAN, "Ultimate AWS SCS-C03 (Maarek)");
-  add({ id: "scs-s10", cert: "scs", ph: 12, type: "cours", min: 30, fr: "Vidéos : 10. Exam Preparation + 11. Congratulations", en: "Videos: 10. Exam Preparation + 11. Congratulations", src: "Ultimate AWS SCS-C03 (Maarek) · 7 sessions · 21 min" });
+  add({ id: "scs-s10", cert: "scs", ph: 13, type: "cours", min: 30, fr: "Vidéos : 10. Exam Preparation + 11. Congratulations", en: "Videos: 10. Exam Preparation + 11. Congratulations", src: "Ultimate AWS SCS-C03 (Maarek) · 7 sessions · 21 min" });
   for (let k = 1; k <= 3; k++) {
-    flexTrio("scs", 12, k);
-    blanc("scs", 12, "pt" + k, `Main Practice Test #${k}`, `Main Practice Test #${k}`, 65, 170, "Practice Exams SCS-C03 (Maarek & Singh)");
+    flexTrio("scs", 13, k);
+    blanc("scs", 13, "pt" + k, `Main Practice Test #${k}`, `Main Practice Test #${k}`, 65, 170, "Practice Exams SCS-C03 (Maarek & Singh)");
   }
-  add({ id: "scs-final", cert: "scs", ph: 13, type: "revision", min: 60,
+  add({ id: "scs-final", cert: "scs", ph: 14, type: "revision", min: 60,
     fr: "Révision finale : tes notes de correction + les tableaux KMS / IAM / logs du cours", en: "Final review: your review notes + the KMS / IAM / logging tables of the course", src: "Ultimate AWS SCS-C03 (Maarek)" });
-  add({ id: "scs-logi", cert: "scs", ph: 13, type: "revision", min: 30,
+  add({ id: "scs-logi", cert: "scs", ph: 14, type: "revision", min: 30,
     fr: "Logistique : convocation, pièce d'identité, test système OnVUE. Vérifier que le bon de -50 % est appliqué", en: "Logistics: booking, ID, OnVUE system test. Check that the 50% voucher was applied", src: "Pearson VUE" });
-  add({ id: "scs-exam", cert: "scs", ph: 13, type: "examen", min: 200, long: true, exam: "scs",
+  add({ id: "scs-exam", cert: "scs", ph: 14, type: "examen", min: 200, long: true, exam: "scs",
     fr: "PASSAGE de l'examen AWS SCS-C03 (65 Q, 170 min + 30 min ESL, en anglais)", en: "SCS-C03 EXAM (65 Q, 170 min + 30 min ESL, in English)", src: "Pearson VUE · 300 $ (150 $ avec le bon -50 %)" });
   return T;
 }
@@ -187,7 +210,7 @@ const L = {
   fr: {
     title: "Cursus AWS", tabPlan: "Planning", tabProg: "Progression", tabExams: "Examens", tabBudget: "Budget", tabRes: "Ressources",
     settings: "Réglages du planning", rhythm: "Rythme", custom: "Personnalisé", startDate: "Date de début", perWeek: "par semaine",
-    holidays: "Pas de séance le 24, 25, 31 décembre et le 1er janvier", gap: "Pause entre les deux certifications", gapDays: "jours",
+    holidays: "Pas de séance le 24, 25, 31 décembre et le 1er janvier", gap: "Pause après l'examen SAA (avant la passerelle sécurité)", gapDays: "jours",
     replan: "Recaler sur aujourd'hui", replanHelp: "Les séances non faites repartent d'aujourd'hui (en retard ou en avance, le planning se recale).",
     replanDone: "Planning recalé à partir d'aujourd'hui", unanchor: "Annuler le recalage", reset: "Tout décocher",
     confirmReset: "Décocher toutes les séances du cursus AWS et effacer les notes et scores ?", resetDone: "Cursus remis à zéro",
@@ -208,11 +231,13 @@ const L = {
     resNote: "Les durées viennent des sommaires Udemy (SAA 27 h 25 de vidéo, SCS 16 h 57). Chaque séance compte 1,5 × la vidéo : le temps de refaire les hands-on et de prendre des notes.",
     synced: "Synchronisé", syncing: "Synchronisation…", offline: "Hors ligne : enregistré ici", err: "Erreur de synchronisation", local: "Enregistré sur cet appareil",
     end: "Fin du cursus", hTotal: "h de travail", h: "h", free: "Créneau libre (rattrapage)",
+    lsTitle: "Écoute en parallèle", lsHelp: "en plus de la séance, dans les transports, au sport…", lsOpt: "Écoute des livres AWS 40 min par jour (en plus de la séance de travail)",
+    lsPart: "de {a} à {z} min sur {n}", lsPass: "tour {n}", lsListen: "Écouter", lsRead: "Lire", openBook: "Ouvrir le résumé", kListen: "Écoute faite", lsWeek: "d'écoute",
   },
   en: {
     title: "AWS path", tabPlan: "Schedule", tabProg: "Progress", tabExams: "Exams", tabBudget: "Budget", tabRes: "Resources",
     settings: "Schedule settings", rhythm: "Pace", custom: "Custom", startDate: "Start date", perWeek: "per week",
-    holidays: "No session on Dec 24, 25, 31 and Jan 1", gap: "Break between the two certifications", gapDays: "days",
+    holidays: "No session on Dec 24, 25, 31 and Jan 1", gap: "Break after the SAA exam (before the security bridge)", gapDays: "days",
     replan: "Re-plan from today", replanHelp: "Sessions not done restart from today (late or ahead, the schedule follows).",
     replanDone: "Schedule re-planned from today", unanchor: "Undo re-plan", reset: "Uncheck all",
     confirmReset: "Uncheck every AWS session and clear notes and scores?", resetDone: "Path reset",
@@ -233,6 +258,8 @@ const L = {
     resNote: "Durations come from the Udemy outlines (SAA 27 h 25 of video, SCS 16 h 57). Each session counts 1.5 × the video: time to redo the hands-on and take notes.",
     synced: "Synced", syncing: "Syncing…", offline: "Offline: saved here", err: "Sync error", local: "Saved on this device",
     end: "Path ends", hTotal: "h of work", h: "h", free: "Free slot (catch-up)",
+    lsTitle: "Listening on the side", lsHelp: "on top of the session: commute, gym…", lsOpt: "Listen to the AWS books 40 min a day (on top of the work session)",
+    lsPart: "min {a} to {z} of {n}", lsPass: "round {n}", lsListen: "Listen", lsRead: "Read", openBook: "Open the summary", kListen: "Listening done", lsWeek: "of listening",
   },
 };
 const BUDGET = [
@@ -254,7 +281,7 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 export function defaultAws() {
   return { v: 1, start: "2026-11-30", preset: "normal", days: PRESETS.normal.d.slice(), hol: true, gap: 7, rate: 0.86,
-    done: {}, notes: {}, scores: {}, anchor: null, exams: { saa: {}, scs: {} } };
+    done: {}, notes: {}, scores: {}, heard: {}, listen: true, anchor: null, exams: { saa: {}, scs: {} } };
 }
 export function normalizeAws(s) {
   const o = defaultAws();
@@ -272,6 +299,8 @@ export function normalizeAws(s) {
     if (k === "notes" && typeof v === "string" && v.trim()) o.notes[id] = v.slice(0, 5000);
     if (k === "scores" && typeof v === "number" && v >= 0 && v <= 100) o.scores[id] = v;
   }
+  if (s.heard && typeof s.heard === "object") for (const id in s.heard) if (LS_IDS.has(id) && typeof s.heard[id] === "number") o.heard[id] = s.heard[id];
+  if (typeof s.listen === "boolean") o.listen = s.listen;
   if (s.anchor && DATE_RE.test(s.anchor.date || "") && BY_ID.has(s.anchor.id)) o.anchor = { date: s.anchor.date, id: s.anchor.id };
   if (s.exams) for (const c of ["saa", "scs"]) { const x = s.exams[c] || {}; o.exams[c] = { registered: !!x.registered, passed: !!x.passed, ...(DATE_RE.test(x.date || "") ? { date: x.date } : {}) }; }
   return o;
@@ -293,7 +322,8 @@ export function schedule(S) {
   const flexAt = (cert, room) => { for (let n = 1; n < queue.length; n++) { const x = TASKS[queue[n]]; if (x.cert !== cert || x.long) return -1; if (x.flex && x.min <= room + 10) return n; } return -1; };
   while (queue.length && guard++ < 5000) {
     if (!anchored && queue[0] >= anchorIdx) { anchored = true; d = parseD(S.anchor.date); }
-    if (!gapDone && TASKS[queue[0]].cert === "scs") { gapDone = true; if (examEnd) { const st = addDays(examEnd, 1 + S.gap); if (st > d) d = st; } }
+    // après l'examen SAA : pause, puis passerelle sécurité, puis SCS
+    if (!gapDone && TASKS[queue[0]].cert !== "saa") { gapDone = true; if (examEnd) { const st = addDays(examEnd, 1 + S.gap); if (st > d) d = st; } }
     const c = cap(d);
     if (c > 0) {
       const ses = { date: new Date(d), tasks: [], min: 0 }, cert = TASKS[queue[0]].cert;
@@ -318,6 +348,48 @@ export function schedule(S) {
   return { sessions, at };
 }
 
+/* ------------------------------------------------------------------ écoute des livres (40 min par jour, en plus de la séance) */
+// Nombre de mots des résumés MyCertif (relevé le 27/11/2026) : la durée d'écoute = mots / 155 par minute (vitesse 1×).
+const LW = { "aws-saa-c03": [8572, 13382, 10570, 11248, 10225, 6464, 6546, 6323, 4961, 10375, 8713, 8381, 6506],
+  "aws-neal-davis": [3455, 2609, 2735, 1836, 1778, 437, 1186, 1180, 2778, 1338] };
+const NEAL_T = [["Calcul", "Compute"], ["Stockage", "Storage"], ["Réseau et diffusion de contenu", "Networking & Content Delivery"], ["Bases de données", "Database"],
+  ["Outils de gestion", "Management Tools"], ["Services média", "Media Services"], ["Analytique", "Analytics"], ["Intégration d'applications", "Application Integration"],
+  ["Sécurité, identité et conformité", "Security, Identity & Compliance"], ["Migration", "Migration"]];
+const C = n => ["aws-saa-c03", n], N = n => ["aws-neal-davis", n];
+// SAA : dans l'ordre du cours (chaque passage complet = 1 tour) ; ensuite (passerelle et SCS) : les chapitres sécurité en boucle
+const LISTEN_SAA = [C(1), N(1), C(2), C(10), C(5), N(4), C(8), N(3), C(3), N(2), N(8), C(9), N(7), C(7), N(5), C(6), N(9), C(12), C(4), N(10), N(6), C(11), C(13)];
+const LISTEN_SEC = [N(9), C(6), C(12), C(7), N(5), C(4)];
+const LISTEN_DAY = 40, LISTEN_WPM = 155;
+const lsTitle = (b, n, en) => (b === "aws-saa-c03" ? `Clinton ${en ? "ch." : "chap."} ${n} · ${CH[200 + n][en ? 1 : 0]}` : `Neal Davis ${en ? "ch." : "chap."} ${n} · ${NEAL_T[n - 1][en ? 1 : 0]}`);
+const lsLen = (b, n) => Math.max(1, Math.round(LW[b][n - 1] / LISTEN_WPM));
+const lsKey = (grp, pass, b, n, from) => `ls-${grp}${pass}-${b === "aws-saa-c03" ? "c" : "n"}${n}-${from}`;
+/** Écoute du jour pour chaque séance du planning : 40 min prises à la suite dans la liste (un chapitre peut
+ *  s'étaler sur plusieurs jours, plusieurs petits chapitres peuvent tenir dans un jour), sauf le jour d'un examen.
+ *  Morceau : { id, b, n, from, to, len, pass, min } (minutes de début et de fin dans le chapitre). */
+export function listenPlan(p) {
+  const st = { a: { pass: 1, i: 0, at: 0 }, s: { pass: 1, i: 0, at: 0 } }, out = new Array(p.sessions.length).fill(null);
+  let grp = "a";
+  p.sessions.forEach((s, k) => {
+    if (s.tasks.length) grp = TASKS[s.tasks[0]].cert === "saa" ? "a" : "s";
+    if (s.tasks.some(i => TASKS[i].exam)) return;
+    const list = grp === "a" ? LISTEN_SAA : LISTEN_SEC, c = st[grp], day = [];
+    let need = LISTEN_DAY;
+    while (need > 0 && c.pass <= 9) {
+      const [b, n] = list[c.i], len = lsLen(b, n);
+      if (c.at === 0 && day.length && need < 8) break;           // pas de début de chapitre de 3 min en fin d'écoute
+      let take = Math.min(need, len - c.at);
+      if (len - c.at - take < 5) take = len - c.at;              // pas de reste de moins de 5 min pour le lendemain
+      day.push({ id: lsKey(grp, c.pass, b, n, c.at), b, n, from: c.at, to: c.at + take, len, pass: c.pass, min: take });
+      need -= take; c.at += take;
+      if (c.at >= len) { c.at = 0; c.i++; if (c.i >= list.length) { c.i = 0; c.pass++; } }
+    }
+    if (day.length) out[k] = day;
+  });
+  return out;
+}
+// ids possibles (pour ne garder que des cases valides dans les données)
+const LS_IDS = { has: id => /^ls-[as][1-9]-[cn]\d{1,2}-\d{1,3}$/.test(id) };
+
 /* ------------------------------------------------------------------ module */
 export function createAwsPlan({ getLang, esc, toast, getData, setData, statusOf, startChapter, chapterBest, onSwitch }) {
   let S = normalizeAws(getData());
@@ -339,9 +411,22 @@ export function createAwsPlan({ getLang, esc, toast, getData, setData, statusOf,
   const typeL = x => TYPE_L[x][lang() === "en" ? 1 : 0];
   const isDone = i => !!S.done[TASKS[i].id];
 
-  function save() { setData(JSON.parse(JSON.stringify(S))); plan = null; }
-  function reload() { S = normalizeAws(getData()); plan = null; openWeeks = null; if (root) render(); }
+  function save() { setData(JSON.parse(JSON.stringify(S))); plan = null; lplan = null; }
+  function reload() { S = normalizeAws(getData()); plan = null; lplan = null; openWeeks = null; if (root) render(); }
   const P = () => plan || (plan = schedule(S));
+  let lplan = null;
+  const LP = () => (S.listen ? lplan || (lplan = listenPlan(P())) : []);
+  /** Bloc « Écoute en parallèle » d'une séance : morceaux de chapitres, case à cocher, boutons Écouter / Lire. */
+  function listenHtml(k) {
+    const day = LP()[k]; if (!day) return "";
+    const en = lang() === "en", m = day.reduce((a, x) => a + x.min, 0);
+    return `<div class="aw-listen"><div class="mono small aw-ls-h">🎧 ${esc(t("lsTitle"))} · ${fmtMin(m)} <span class="muted">· ${esc(t("lsHelp"))}</span></div>
+      ${day.map(x => { const h = !!S.heard[x.id], href = `#/books/${x.b}/${x.n}`;
+        return `<div class="aw-ls-row${h ? " done" : ""}"><label class="sv-cb"><input type="checkbox" data-aw-heard="${x.id}" ${h ? "checked" : ""} aria-label="${esc(lsTitle(x.b, x.n, en))}"><span></span></label>
+          <div class="aw-ls-t">${esc(lsTitle(x.b, x.n, en))}<span class="mono muted small"> · ${x.min < x.len ? esc(t("lsPart", { a: x.from, z: x.to, n: x.len })) : fmtMin(x.min)}${x.pass > 1 ? " · " + esc(t("lsPass", { n: x.pass })) : ""}</span></div>
+          <div class="aw-ls-b"><button class="btn btn-ghost btn-xs" data-aw-listen="${x.b}|${x.n}">🎧 ${esc(t("lsListen"))}</button><a class="btn btn-ghost btn-xs" href="${href}">📖 ${esc(t("lsRead"))}</a></div></div>`; }).join("")}
+    </div>`;
+  }
   const dateOf = i => { const p = P(); return p.at[i] == null ? null : p.sessions[p.at[i]].date; };
   const weekOf = d => Math.floor((d - parseD(S.start)) / 864e5 / 7) + 1;
 
@@ -390,6 +475,7 @@ export function createAwsPlan({ getLang, esc, toast, getData, setData, statusOf,
       <div class="aw-days">${DAYS.map((dn, k) => `<label class="sv-field"><span class="mono">${dn}</span><select data-day="${k}">${DAY_OPTS.map(m => `<option value="${m}" ${S.days[k] === m ? "selected" : ""}>${m ? (m >= 60 ? `${Math.floor(m / 60)}h${m % 60 ? String(m % 60).padStart(2, "0") : ""}` : `${m}min`) : "—"}</option>`).join("")}</select></label>`).join("")}</div>
       <div class="sv-set-row">
         <label class="sv-chk"><input type="checkbox" id="aw-hol" ${S.hol ? "checked" : ""}> ${esc(t("holidays"))}</label>
+        <label class="sv-chk"><input type="checkbox" id="aw-listen-on" ${S.listen ? "checked" : ""}> 🎧 ${esc(t("lsOpt"))}</label>
         <label class="sv-field"><span class="mono">${esc(t("gap"))}</span><select id="aw-gap">${[0, 3, 7, 14, 21].map(n => `<option value="${n}" ${S.gap === n ? "selected" : ""}>${n} ${esc(t("gapDays"))}</option>`).join("")}</select></label>
       </div>
       <div class="sv-set-row aw-actions">
@@ -418,6 +504,7 @@ export function createAwsPlan({ getLang, esc, toast, getData, setData, statusOf,
       const b = chapterBest(x.ch);
       extra += `<button class="btn btn-ghost btn-xs" data-aw-ch="${x.ch}">▶ ${esc(t("launch"))}</button><span class="mono small ${b >= 80 ? "aw-ok" : "muted"}">${b >= 0 ? `${esc(t("best"))} ${b} %` : esc(t("never"))}</span>`;
     }
+    if (x.bk) extra += `<button class="btn btn-ghost btn-xs" data-aw-listen="${x.bk[0]}|${x.bk[1]}">🎧 ${esc(t("lsListen"))}</button><a class="btn btn-ghost btn-xs" href="#/books/${x.bk[0]}/${x.bk[1]}">📖 ${esc(t("openBook"))}</a>`;
     if (x.pt) extra += `<label class="aw-score mono small">${esc(t("score"))} <input type="number" min="0" max="100" inputmode="numeric" data-aw-score="${x.id}" value="${S.scores[x.id] ?? ""}" placeholder="${esc(t("scoreph"))}"></label>`;
     return `<div class="aw-task${done ? " done" : ""}" id="aw-t-${i}">
       <label class="sv-cb"><input type="checkbox" data-aw-done="${i}" ${done ? "checked" : ""} aria-label="${esc(tl(x))}"><span></span></label>
@@ -466,6 +553,7 @@ export function createAwsPlan({ getLang, esc, toast, getData, setData, statusOf,
           <div class="aw-sh"><div class="sv-date mono"><span class="sv-dow">${esc(fmtDow(s.date))}</span> ${fmtShort(s.date)}</div>
           <div class="sv-dur mono">${s.free ? "" : fmtMin(s.min)}</div>${late ? `<span class="sv-late mono">${esc(t("late"))}</span>` : ""}</div>
           ${s.free ? `<div class="muted small mono aw-free">${esc(t("free"))}</div>` : tv.map(i => taskHtml(i, k)).join("")}
+          ${q || filters.phase || filters.type ? "" : listenHtml(k)}
         </div>`;
       }
       html += `</details>`;
@@ -505,6 +593,7 @@ export function createAwsPlan({ getLang, esc, toast, getData, setData, statusOf,
       const p = P(), k = p.at[ni], ses = p.sessions[k], d = ses.date;
       next = `<div class="aw-next-h mono muted small">${esc(fmtLong(d))} · ${fmtMin(ses.min)}${d < today ? ` <span class="sv-late">${esc(t("late"))}</span>` : ""}</div>
         ${ses.tasks.filter(i => !isDone(i)).map(i => taskHtml(i, k)).join("")}
+        ${listenHtml(k)}
         <button class="btn btn-primary btn-sm" id="aw-mark-next" data-sess="${k}">✓ ${esc(t("markDone"))}</button>`;
     }
     let rowsH = "", tot = { n: 0, d: 0, h: 0, hd: 0 };
@@ -520,6 +609,8 @@ export function createAwsPlan({ getLang, esc, toast, getData, setData, statusOf,
         ${kpi(t("kTasks"), `${s.n}<small>/${s.N}</small>`)}
         ${kpi(t("kHours"), `${num(s.h)}<small> ${t("h")}</small>`, `${t("of")} ${num(s.H)} ${t("h")} · ${pct(s.h / s.H)}`)}
         ${kpi(t("kLate"), `${s.late}`)}
+        ${S.listen ? (() => { let L = 0, H = 0; LP().forEach(d => d && d.forEach(x => { L += x.min; if (S.heard[x.id]) H += x.min; }));
+          return kpi("🎧 " + t("kListen"), `${num(H / 60)}<small> ${t("h")}</small>`, `${t("of")} ${num(L / 60)} ${t("h")}`); })() : ""}
         ${kpi(t("kNext"), nextExam ? esc(EXAMS[nextExam.c].code) : "—", nextExam ? esc(fmtShort(nextExam.d)) + " · " + esc(days === 0 ? t("today") : t("inDays", { n: days })) : "")}
       </div>
       <div class="sv-grid">
@@ -595,6 +686,15 @@ export function createAwsPlan({ getLang, esc, toast, getData, setData, statusOf,
     root.querySelectorAll("[data-aw-done]").forEach(cb => cb.addEventListener("change", () => {
       const id = TASKS[+cb.dataset.awDone].id; if (cb.checked) S.done[id] = Date.now(); else delete S.done[id]; save(); rerenderKeepScroll(); }));
     root.querySelectorAll("[data-aw-ch]").forEach(b => (b.onclick = () => startChapter(+b.dataset.awCh)));
+    on("#aw-listen-on", "change", e => { S.listen = e.target.checked; save(); rerenderKeepScroll(); });
+    root.querySelectorAll("[data-aw-heard]").forEach(cb => cb.addEventListener("change", () => {
+      const id = cb.dataset.awHeard; if (cb.checked) S.heard[id] = Date.now(); else delete S.heard[id]; save(); rerenderKeepScroll(); }));
+    // Écouter : ouvre le résumé dans le lecteur et lance la voix là où l'écoute s'était arrêtée
+    root.querySelectorAll("[data-aw-listen]").forEach(b => (b.onclick = () => {
+      const [id, n] = b.dataset.awListen.split("|");
+      try { sessionStorage.setItem("bk-auto", id + "|" + n + "|r"); } catch { /* */ }
+      location.hash = `#/books/${encodeURIComponent(id)}/${n}`;
+    }));
     root.querySelectorAll("[data-aw-score]").forEach(inp => inp.addEventListener("change", () => {
       const v = inp.value === "" ? null : Math.max(0, Math.min(100, Math.round(+inp.value))); const id = inp.dataset.awScore;
       if (v == null || !isFinite(v)) delete S.scores[id]; else { S.scores[id] = v; if (!S.done[id]) S.done[id] = Date.now(); }
