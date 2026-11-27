@@ -1,6 +1,6 @@
 {
-  "versionCode": 63,
-  "versionName": "3.42",
+  "versionCode": 64,
+  "versionName": "3.43",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
     "fr": "Voiture et écouteurs : quand une alerte arrive (GPS, message, appel), la lecture se met en pause au lieu de baisser le son, puis reprend la phrase en cours quand l'alerte est finie.",
