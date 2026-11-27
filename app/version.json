@@ -1,9 +1,9 @@
 {
-  "versionCode": 61,
-  "versionName": "3.40",
+  "versionCode": 62,
+  "versionName": "3.41",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Résumés Neal Davis enrichis (environ 30 000 mots au total) : le cursus AWS recalcule les 40 min d'écoute quotidiennes avec leur nouvelle durée.",
-    "en": "Richer Neal Davis summaries (about 30,000 words in all): the AWS path recomputes the daily 40 min listening with their new length."
+    "fr": "Android Auto : nouvel onglet « Révision » avec les résumés de l'onglet Résumé (AWS, Splunk, CEH), rangés par certification, à écouter dans la voiture. L'onglet Livres ne garde que tes livres importés.",
+    "en": "Android Auto: new « Révision » tab with the summaries from the Résumé tab (AWS, Splunk, CEH), grouped by certification, to listen to in the car. The Books tab now only keeps your imported books."
   }
 }

@@ -497,7 +497,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   }
   var carRTimer = null;
   function carReadSoon() { try { if (!window.AndroidCar) return; clearTimeout(carRTimer); carRTimer = setTimeout(carSettings, 2000); } catch { /* */ } }
-  const carV = b => String(b.version || "") + "~" + SPEECH_V + "~" + (upl(b) ? voiceOf(b) + (prefs.tr && prefs.tr[b.id] ? "+tr" : "") : cLang());      // texte adapté à l'écoute : nouvelles règles = livre à renvoyer
+  const carV = b => String(b.version || "") + "~" + SPEECH_V + "~" + (upl(b) ? voiceOf(b) + (prefs.tr && prefs.tr[b.id] ? "+tr" : "") : cLang() + "~rev");      // texte adapté à l'écoute : nouvelles règles = livre à renvoyer
   const carVersion = b => { const c = car(); try { return c ? c.bookVersion(b.id) || "" : ""; } catch { return ""; } };
   /**
    * Case de tableau à lire ? Non si elle contient des paragraphes (lus un par un), si elle est vide ou si ce n'est
@@ -548,7 +548,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       if (!todo.length) return;
       // Les livres pas encore préparés apparaissent tout de suite dans la voiture, marqués « en préparation ».
       for (const b of todo) if (!carVersion(b)) {
-        try { c.saveBook(JSON.stringify({ id: b.id, title: pick(b, "title", upl(b) ? uiLang() : cLang()), author: b.author || "", version: "", cover: "", pending: true, chapters: [] })); } catch { /* */ }
+        try { c.saveBook(JSON.stringify({ id: b.id, title: pick(b, "title", upl(b) ? uiLang() : cLang()), author: b.author || "", version: "", cover: "", pending: true, chapters: [], ...carSum(b) })); } catch { /* */ }
       }
       toast(t("carSyncGo", { n: todo.length }), "info");
       let done = 0;
@@ -585,7 +585,14 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     return { file: { n: ch.n, title, lang, segs }, meta: { n: ch.n, title, tr, words: segs.reduce((k, x) => k + (String(x).trim().match(/\S+/g) || []).length, 0) } };
   }
   const CAR_META = "mycertif-car-meta:";              // liste des chapitres envoyés, pour mettre à jour un seul chapitre ensuite
-  const carBookJson = (b, chs) => JSON.stringify({ id: b.id, title: pick(b, "title", upl(b) ? voiceOf(b) : cLang()), author: b.author || "", version: carV(b),
+  /** Livre fourni avec l'appli (résumés de l'onglet Résumé) : onglet « Révision » de la voiture, rangé par certification. */
+  const carSum = b => {
+    if (upl(b) || /^u-/.test(b.id)) return {};
+    let i = SUM_CERTS.findIndex(c => c.ids.includes(b.id));
+    if (i < 0) i = SUM_CERTS.findIndex(c => b.id.startsWith(c.k + "-") || b.id.includes(c.k));
+    return { kind: "sum", group: i >= 0 ? SUM_CERTS[i][uiLang()] : t("sumOther"), gpos: i >= 0 ? i : 9 };
+  };
+  const carBookJson = (b, chs) => JSON.stringify({ id: b.id, title: pick(b, "title", upl(b) ? voiceOf(b) : cLang()), author: b.author || "", version: carV(b), ...carSum(b),
     cover: b.cover && /^data:image\/(png|jpe?g|webp);base64,/.test(b.cover) ? b.cover : "", chapters: chs });
   async function sendToCar(b, onStep, auto = false) {
     const c = car(); if (!c) return;
