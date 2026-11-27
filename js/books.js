@@ -236,6 +236,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   const mem = new Map();          // chapitres déjà chargés (id|n)
   let root = null, pushTimer = null, busy = false;
   let player = null;              // { segs, i, playing, token, lang }
+  let adoptAt = null;             // phrase où reprendre l'écoute d'arrière-plan en revenant sur son chapitre
   // « Lire sur ma voiture » : le lecteur du téléphone garde la main, chaque phrase est dite par le lecteur de la voiture
   let carVoice = false;
   const canCarSay = () => !!(window.AndroidCar && typeof window.AndroidCar.say === "function");
@@ -855,7 +856,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     carProgress();
     const parts = hash.replace(/^#\/?/, "").split("/").slice(1).map(decodeURIComponent);
     const [id, nStr, sub] = parts;
-    if (!(id && nStr)) stop();
+    if (!(id && nStr)) leave();
     root.innerHTML = `<div class="boot"><p class="mono">&gt; books<span class="cursor">_</span></p></div>`;
     try {
       await loadLib();
@@ -1078,7 +1079,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   const setSumArch = (k, on) => { const a = new Set(sumArch()); if (on) a.add(k); else a.delete(k); try { localStorage.setItem(SUM_ARCH, JSON.stringify([...a])); } catch { /* */ } };
   const sumName = k => { const c = SUM_CERTS.find(x => x.k === k); return c ? c[uiLang()] : t("sumOther"); };
   async function summaries(el) {
-    root = el; stop(); setCastAction(null);
+    root = el; leave(); setCastAction(null);
     root.innerHTML = `<div class="boot"><p class="mono">&gt; resumes<span class="cursor">_</span></p></div>`;
     try { await loadLib(); } catch (e) {
       console.error(e);
@@ -1330,6 +1331,8 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
 
   /* ---------------- lecture d'un chapitre ---------------- */
   function renderChapter(b, ch) {
+    // retour sur le chapitre qu'on écoute en arrière-plan : la lecture reprend ici, à la même phrase
+    adoptAt = player && player.bg && player.playing && player.key === b.id + "|" + ch.n ? player.i : null;
     stop();
     const u = upl(b), n = ch.n, i = b.chapters.findIndex(c => c.n === n);
     // Chapitre sans texte français : traduction automatique par le navigateur (Translator API de Chrome / Edge), jamais enregistrée
@@ -2134,7 +2137,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     });
     if (!segs.length) return;
     const key = b.id + "|" + ch.n;
-    player = { segs, i: Math.min(P.pos[key] || 0, segs.length - 1), playing: false, token: 0, lang: speakLang };
+    player = { segs, i: Math.min(P.pos[key] || 0, segs.length - 1), playing: false, token: 0, lang: speakLang, key };
     const posEl = bar.querySelector("#bk-pl-pos"), main = bar.querySelector(".bk-pl-main");
     const paint = () => {
       const cur = segs[player.i], on = !bar.hidden;
@@ -2174,7 +2177,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     };
     /** Garde la phrase lue entièrement visible : le paragraphe centré s'il tient à l'écran, sinon la phrase elle-même. */
     const follow = j => {
-      const s = segs[j]; if (!s) return;
+      const s = segs[j]; if (!s || !bar.isConnected) return;       // écoute en arrière-plan : on ne fait pas défiler l'autre page
       const b = band(), h = Math.max(60, b.bottom - b.top);
       let r = s.el.getBoundingClientRect();
       if (r.height > h * 0.85 && s.a != null) { const rg = textRange(s.el, s.a, s.z); const rr = rg && rg.getBoundingClientRect(); if (rr && rr.height) r = rr; }
@@ -2200,7 +2203,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
         else {
           player.playing = false; player.i = 0; P.pos[key] = 0; wrj(PKEY, P); onEnd();
           const nx = prefs.chain && nextOf(b, ch.n);
-          if (!nx) return paint();
+          if (!nx || !bar.isConnected) return paint();      // en arrière-plan : pas de saut de page vers le chapitre suivant
           try { sessionStorage.setItem("bk-auto", b.id + "|" + nx); } catch { /* */ }
           location.hash = `#/books/${encodeURIComponent(b.id)}/${nx}`;        // la lecture reprend au début du chapitre suivant
         }
@@ -2367,12 +2370,26 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     };
     let auto = null; try { auto = sessionStorage.getItem("bk-auto"); } catch { /* */ }
     // « bk-auto » = id|n : enchaînement, depuis le début ; id|n|r : bouton Écouter de l'onglet Résumé, reprise où l'écoute s'était arrêtée
-    if (auto === key || auto === key + "|r") { try { sessionStorage.removeItem("bk-auto"); } catch { /* */ } if (auto === key) player.i = 0; open(); }
+    if (adoptAt != null) { player.i = Math.min(adoptAt, segs.length - 1); adoptAt = null; open(); }
+    else if (auto === key || auto === key + "|r") { try { sessionStorage.removeItem("bk-auto"); } catch { /* */ } if (auto === key) player.i = 0; open(); }
   }
   function stop() {
     mediaCtl = null;
     if (player) { player.token++; player.playing = false; player = null; tts.stop(); window.__carSaid = null; try { if (carVoice && window.AndroidCar && window.AndroidCar.sayStop) window.AndroidCar.sayStop(); } catch { /* */ } const m = media(); if (m) try { m.end(); } catch { /* */ } }
     screenAwake(false);
+    uiOff();
+  }
+  /**
+   * On quitte le lecteur (autre onglet, Paramètres, bibliothèque, Résumé) : une écoute en cours continue en arrière-plan,
+   * pilotée par la notification, le casque ou la voiture. Sans écoute en cours : arrêt normal.
+   */
+  function leave() {
+    if (!player || !player.playing) return stop();
+    player.bg = true;
+    uiOff();
+  }
+  /** Rangement de l'écran du lecteur (sans toucher au son). */
+  function uiOff() {
     clearHL();
     document.body.classList.remove("bk-playing", "bk-set-on", "bk-pages", "bk-full", ...THEMES.map(x => "bk-th-" + x));
     if (uxAbort) { uxAbort.abort(); uxAbort = null; }
@@ -2456,7 +2473,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   }
   const nextOf = (b, n) => { const i = b.chapters.findIndex(c => c.n === n); return b.chapters[i + 1] && b.chapters[i + 1].n; };
 
-  return { render, summaries, sumArchived: () => sumArch().map(k => ({ k, name: sumName(k) })), sumRestore: k => setSumArch(k, false), sync, forget, stop, carSyncAll,
+  return { render, summaries, sumArchived: () => sumArch().map(k => ({ k, name: sumName(k) })), sumRestore: k => setSumArch(k, false), sync, forget, stop, leave, carSyncAll,
     // onglet Paramètres : mêmes préférences de lecture que le lecteur
     prefs: () => prefs, RATES: RATE_PRESETS, GAPS,
     setPref: (k, v) => { prefs[k] = k === "rate" ? clampRate(v) : k === "font" ? clampBf(v) : v; savePrefs(); }, BF_PRE,

@@ -1,9 +1,9 @@
 {
-  "versionCode": 64,
-  "versionName": "3.43",
+  "versionCode": 65,
+  "versionName": "3.44",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Voiture et écouteurs : quand une alerte arrive (GPS, message, appel), la lecture se met en pause au lieu de baisser le son, puis reprend la phrase en cours quand l'alerte est finie.",
-    "en": "Car and earbuds: when an alert comes in (GPS, message, call), playback pauses instead of lowering the volume, then resumes the current sentence once the alert is over."
+    "fr": "Écoute d'un livre ou d'un résumé : elle continue quand tu changes d'onglet (Paramètres, Accueil, Suivi, bibliothèque…), pilotée par la notification, le casque ou la voiture. En revenant sur le chapitre, la lecture reprend à la phrase en cours.",
+    "en": "Listening to a book or summary now keeps going when you switch tabs (Settings, Home, Progress, library…), controlled from the notification, earbuds or car. Back on the chapter, playback picks up at the current sentence."
   }
 }
