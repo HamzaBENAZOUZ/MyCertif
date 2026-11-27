@@ -1223,3 +1223,54 @@ html.tv .bk-selmenu { display: none; }
 .bk-tools .bk-bf-v { min-width: 3.4em; text-align: center; font-size: .78rem; }
 /* « Lire sur ma voiture » actif : le son passe par la voiture */
 .bk-player .bk-pl-car[aria-pressed="true"], #bk-carsay[aria-pressed="true"] { background: var(--grad); color: #fff; border-color: transparent; }
+
+/* ===== Suivi : choix du cursus + cursus AWS (js/aws-plan.js) ===== */
+.cursus-switch { display: flex; width: fit-content; max-width: 100%; overflow-x: auto; scrollbar-width: none; border-radius: 999px; padding: 3px; margin: 0 0 16px;
+  background: var(--glass); border-color: var(--glass-line); }
+.cursus-switch .seg-btn { border: 0 !important; border-radius: 999px; padding: 8px 16px; font-size: .82rem; white-space: nowrap; }
+.aw-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.aw-days select { width: 100%; min-height: 38px; padding: 4px 6px; font-size: .8rem; }
+.aw-actions { margin-top: 10px; }
+.aw-sess { border-top: 1px solid var(--glass-line); border-left: 3px solid transparent; padding: 10px 16px 6px; }
+.sv-week[open] > summary + .aw-sess, .sv-week[open] > .aw-mile + .aw-sess { border-top: 0; }
+.aw-sess.today { border-left-color: var(--mag); background: color-mix(in srgb, var(--mag) 7%, transparent); }
+.aw-sess.exam { border-left-color: var(--org); background: color-mix(in srgb, var(--org) 8%, transparent); }
+.aw-sess.free { padding: 6px 16px; opacity: .7; }
+.aw-sh { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+.aw-free { padding-bottom: 4px; }
+.aw-task { display: grid; grid-template-columns: 30px 1fr auto; gap: 4px 12px; align-items: start; padding: 6px 0; }
+.aw-task.flash { animation: svflash 1.6s ease-out; }
+.aw-task.done .sv-content { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line-2); }
+.aw-tbody { display: grid; gap: 3px; min-width: 0; }
+.aw-tbody .sv-note { grid-column: auto; }
+.aw-extra { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 4px; }
+.aw-score { display: inline-flex; align-items: center; gap: 6px; }
+.aw-score input { width: 74px; min-height: 32px; padding: 4px 8px; }
+.aw-ok { color: var(--green); } .aw-warn { color: var(--amber); }
+.aw-mile { margin: 0; padding: 8px 16px; font-size: .78rem; color: var(--org); background: color-mix(in srgb, var(--org) 8%, transparent); border-bottom: 1px solid var(--glass-line); }
+.aw-t-cours { color: #4cc9ff; background: rgba(76, 201, 255, .1); }
+.aw-t-qcm { color: var(--green); background: color-mix(in srgb, var(--green) 12%, transparent); }
+.aw-t-blanc { color: #b794ff; background: rgba(183, 148, 255, .12); }
+.aw-t-revision { color: var(--org); background: color-mix(in srgb, var(--org) 12%, transparent); }
+.aw-t-examen { color: var(--mag); background: color-mix(in srgb, var(--mag) 12%, transparent); }
+:root[data-theme="light"] .aw-t-cours { color: #0369a1; } :root[data-theme="light"] .aw-t-blanc { color: #6d28d9; }
+.aw-next-h { margin-bottom: 6px; }
+.aw-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.aw-charts p { margin: 0 0 4px; }
+.aw-chart { width: 100%; height: auto; display: block; }
+.aw-chart .aw-bar { fill: color-mix(in srgb, var(--amber) 75%, transparent); }
+.aw-chart .aw-bar-ok { fill: var(--green); }
+.aw-chart .aw-80 { stroke: var(--muted); stroke-dasharray: 4 4; stroke-width: 1; }
+.aw-chart .aw-ax { fill: var(--muted); font: 10px var(--mono); }
+.aw-chart .aw-val { fill: var(--text); font: 700 11px var(--mono); }
+.aw-chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px; margin-bottom: 8px; }
+.aw-chip { display: grid; gap: 2px; justify-items: center; padding: 8px 4px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--glass); color: var(--muted); font-size: .7rem; cursor: pointer; }
+.aw-chip b { font-size: .95rem; color: var(--text); }
+.aw-chip.ok { border-color: color-mix(in srgb, var(--green) 60%, transparent); } .aw-chip.ok b { color: var(--green); }
+.aw-chip.ko { border-color: color-mix(in srgb, var(--amber) 60%, transparent); } .aw-chip.ko b { color: var(--amber); }
+@media (max-width: 640px) {
+  .aw-days { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .aw-charts { grid-template-columns: 1fr; }
+  .aw-task { grid-template-columns: 28px 1fr; }
+  .aw-task .sv-notecell { grid-column: 2; }
+}

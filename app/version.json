@@ -1,9 +1,9 @@
 {
-  "versionCode": 56,
-  "versionName": "3.35",
+  "versionCode": 57,
+  "versionName": "3.36",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Livres : la lecture continue téléphone verrouillé, comme une appli de musique. La pause entre les phrases est maintenant faite par l'appli elle-même : Android ralentissait fortement la page écran éteint, et la lecture s'arrêtait.",
-    "en": "Books: playback keeps going with the phone locked, like a music app. The pause between sentences is now made by the app itself: Android heavily slowed the page with the screen off, and playback stalled."
+    "fr": "Suivi : nouveau cursus AWS, Solutions Architect (SAA-C03) puis Security Specialty (SCS-C03). Planning calculé selon ton rythme (Léger, Normal, Intensif ou jours au choix), bouton « Recaler sur aujourd'hui », QCM MyCertif lançables depuis chaque séance, scores des examens blancs, dates d'examen, budget. Le planning Splunk reste accessible avec le sélecteur en haut.",
+    "en": "Tracker: new AWS path, Solutions Architect (SAA-C03) then Security Specialty (SCS-C03). Schedule computed from your pace (Light, Normal, Intensive or custom days), “Re-plan from today” button, MyCertif quizzes launched from each session, practice exam scores, exam dates, budget. The Splunk schedule stays available with the switch at the top."
   }
 }
