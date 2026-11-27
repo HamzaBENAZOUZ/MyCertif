@@ -447,7 +447,7 @@ function paintNav() {
   nav.querySelectorAll("[data-main]").forEach(a => {
     a.setAttribute("aria-current", a.dataset.main === cur ? "page" : "false");
     const k = { resumes: "nav.sum", home: "nav.train", suivi: "nav.suivi", history: "nav.history", books: "nav.books", settings: "nav.settings" }[a.dataset.main];
-    const lab = a.querySelector("span"); if (lab) lab.textContent = getLang() === "fr" ? { "nav.sum": "Résumé", "nav.train": "Entraînement", "nav.suivi": "Suivi", "nav.history": "Historique", "nav.books": "Books", "nav.settings": "Paramètres" }[k] : { "nav.sum": "Summaries", "nav.train": "Practice", "nav.suivi": "Tracker", "nav.history": "History", "nav.books": "Books", "nav.settings": "Settings" }[k];
+    const lab = a.querySelector("span"); if (lab) lab.textContent = getLang() === "fr" ? { "nav.sum": "Résumé", "nav.train": "Entraînement", "nav.suivi": "Suivi", "nav.history": "Historique", "nav.books": "Books", "nav.settings": "Paramètres" }[k] : { "nav.sum": "Summary", "nav.train": "Practice", "nav.suivi": "Tracker", "nav.history": "History", "nav.books": "Books", "nav.settings": "Settings" }[k];
   });
 }
 
