@@ -1068,7 +1068,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
 
   /* ---------------- onglet « Résumé » : résumés des chapitres par certification, à lire ou écouter ---------------- */
   const SUM_CERTS = [
-    { k: "aws", fr: "AWS Solutions Architect Associate (SAA-C03)", en: "AWS Solutions Architect Associate (SAA-C03)", ids: ["aws-saa-c03", "aws-neal-davis"] },
+    { k: "aws", fr: "AWS Solutions Architect Associate (SAA-C03)", en: "AWS Solutions Architect Associate (SAA-C03)", ids: ["aws-saa-c03", "aws-neal-davis", "aws-jon-bonso"] },
     { k: "splunk", fr: "Splunk (SPLK-1001 / SPLK-1002)", en: "Splunk (SPLK-1001 / SPLK-1002)", ids: ["splunk-core-companion", "mastering-splunk"] },
     { k: "ceh", fr: "Certified Ethical Hacker (CEH)", en: "Certified Ethical Hacker (CEH)", ids: ["ceh-walker"] },
   ];

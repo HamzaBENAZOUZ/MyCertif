@@ -349,20 +349,27 @@ export function schedule(S) {
 }
 
 /* ------------------------------------------------------------------ écoute des livres (40 min par jour, en plus de la séance) */
-// Nombre de mots des résumés MyCertif (relevé le 27/11/2026) : la durée d'écoute = mots / 155 par minute (vitesse 1×).
-const LW = { "aws-saa-c03": [8572, 13382, 10570, 11248, 10225, 6464, 6546, 6323, 4961, 10375, 8713, 8381, 6506],
-  "aws-neal-davis": [5239, 4208, 4388, 3259, 2612, 743, 1833, 1687, 3791, 2132] };
+// Nombre de mots des résumés MyCertif (relevé le 27/11/2026, sections Expert comprises) : la durée d'écoute = mots / 155 par minute (vitesse 1×).
+const LW = { "aws-saa-c03": [9609, 14370, 11602, 12153, 11096, 7350, 7352, 7129, 5654, 11255, 9447, 9183, 7239],
+  "aws-neal-davis": [5882, 4815, 5030, 3856, 3145, 1076, 2297, 2247, 4438, 2614],
+  "aws-jon-bonso": [2137, 1864, 2228, 1405, 2924, 2447, 2054, 2067, 1573, 2008, 1855, 2236, 2391, 1557, 2512] };
 const NEAL_T = [["Calcul", "Compute"], ["Stockage", "Storage"], ["Réseau et diffusion de contenu", "Networking & Content Delivery"], ["Bases de données", "Database"],
   ["Outils de gestion", "Management Tools"], ["Services média", "Media Services"], ["Analytique", "Analytics"], ["Intégration d'applications", "Application Integration"],
   ["Sécurité, identité et conformité", "Security, Identity & Compliance"], ["Migration", "Migration"]];
-const C = n => ["aws-saa-c03", n], N = n => ["aws-neal-davis", n];
+const BONSO_T = [["L'examen et la préparation", "The exam and how to prepare"], ["Bases du cloud, Well-Architected, reprise", "Cloud basics, Well-Architected, DR"], ["EC2 et Auto Scaling", "EC2 and Auto Scaling"],
+  ["Conteneurs et serverless", "Containers and serverless"], ["S3, Glacier, Storage Gateway", "S3, Glacier, Storage Gateway"], ["EBS, EFS, FSx", "EBS, EFS, FSx"], ["RDS et Aurora", "RDS and Aurora"],
+  ["DynamoDB, Redshift, autres bases", "DynamoDB, Redshift, other databases"], ["VPC", "VPC"], ["Route 53 et ELB", "Route 53 and ELB"], ["CloudFront, Direct Connect, Global Accelerator", "CloudFront, Direct Connect, Global Accelerator"],
+  ["IAM, KMS, WAF, sécurité", "IAM, KMS, WAF, security"], ["Surveillance et messagerie", "Monitoring and messaging"], ["Développement, ML, déploiement", "Developer, ML, deployment"], ["Comparatif des services", "Service comparisons"]];
+const C = n => ["aws-saa-c03", n], N = n => ["aws-neal-davis", n], J = n => ["aws-jon-bonso", n];
 // SAA : dans l'ordre du cours (chaque passage complet = 1 tour) ; ensuite (passerelle et SCS) : les chapitres sécurité en boucle
-const LISTEN_SAA = [C(1), N(1), C(2), C(10), C(5), N(4), C(8), N(3), C(3), N(2), N(8), C(9), N(7), C(7), N(5), C(6), N(9), C(12), C(4), N(10), N(6), C(11), C(13)];
-const LISTEN_SEC = [N(9), C(6), C(12), C(7), N(5), C(4)];
+const LISTEN_SAA = [C(1), N(1), C(2), C(10), C(5), N(4), C(8), N(3), C(3), N(2), N(8), C(9), N(7), C(7), N(5), C(6), N(9), C(12), C(4), N(10), N(6), C(11), C(13),
+  J(1), J(2), J(3), J(4), J(5), J(6), J(7), J(8), J(9), J(10), J(11), J(12), J(13), J(14), J(15)];
+const LISTEN_SEC = [N(9), C(6), C(12), C(7), N(5), C(4), J(12)];
 const LISTEN_DAY = 40, LISTEN_WPM = 155;
-const lsTitle = (b, n, en) => (b === "aws-saa-c03" ? `Clinton ${en ? "ch." : "chap."} ${n} · ${CH[200 + n][en ? 1 : 0]}` : `Neal Davis ${en ? "ch." : "chap."} ${n} · ${NEAL_T[n - 1][en ? 1 : 0]}`);
+const lsTitle = (b, n, en) => (b === "aws-saa-c03" ? `Clinton ${en ? "ch." : "chap."} ${n} · ${CH[200 + n][en ? 1 : 0]}`
+  : b === "aws-jon-bonso" ? `Jon Bonso ${en ? "ch." : "chap."} ${n} · ${BONSO_T[n - 1][en ? 1 : 0]}` : `Neal Davis ${en ? "ch." : "chap."} ${n} · ${NEAL_T[n - 1][en ? 1 : 0]}`);
 const lsLen = (b, n) => Math.max(1, Math.round(LW[b][n - 1] / LISTEN_WPM));
-const lsKey = (grp, pass, b, n, from) => `ls-${grp}${pass}-${b === "aws-saa-c03" ? "c" : "n"}${n}-${from}`;
+const lsKey = (grp, pass, b, n, from) => `ls-${grp}${pass}-${b === "aws-saa-c03" ? "c" : b === "aws-jon-bonso" ? "j" : "n"}${n}-${from}`;
 /** Écoute du jour pour chaque séance du planning : 40 min prises à la suite dans la liste (un chapitre peut
  *  s'étaler sur plusieurs jours, plusieurs petits chapitres peuvent tenir dans un jour), sauf le jour d'un examen.
  *  Morceau : { id, b, n, from, to, len, pass, min } (minutes de début et de fin dans le chapitre). */
@@ -388,7 +395,7 @@ export function listenPlan(p) {
   return out;
 }
 // ids possibles (pour ne garder que des cases valides dans les données)
-const LS_IDS = { has: id => /^ls-[as][1-9]-[cn]\d{1,2}-\d{1,3}$/.test(id) };
+const LS_IDS = { has: id => /^ls-[as][1-9]-[cnj]\d{1,2}-\d{1,3}$/.test(id) };
 
 /* ------------------------------------------------------------------ module */
 export function createAwsPlan({ getLang, esc, toast, getData, setData, statusOf, startChapter, chapterBest, onSwitch }) {

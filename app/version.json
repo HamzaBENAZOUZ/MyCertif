@@ -1,9 +1,9 @@
 {
-  "versionCode": 62,
-  "versionName": "3.41",
+  "versionCode": 63,
+  "versionName": "3.42",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Android Auto : nouvel onglet « Révision » avec les résumés de l'onglet Résumé (AWS, Splunk, CEH), rangés par certification, à écouter dans la voiture. L'onglet Livres ne garde que tes livres importés.",
-    "en": "Android Auto: new « Révision » tab with the summaries from the Résumé tab (AWS, Splunk, CEH), grouped by certification, to listen to in the car. The Books tab now only keeps your imported books."
+    "fr": "Nouveau cours Jon Bonso – Tutorials Dojo (15 chapitres FR/EN, quiz) dans Résumé AWS, section « Expert AWS Architecte Certification » dans chaque chapitre Clinton, Neal Davis et Bonso, écoute du cursus mise à jour.",
+    "en": "New Jon Bonso – Tutorials Dojo course (15 chapters FR/EN, quizzes) in Summary AWS, an \"AWS Architect Certification expert\" section in every Clinton, Neal Davis and Bonso chapter, updated path listening."
   }
 }

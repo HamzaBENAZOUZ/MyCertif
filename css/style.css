@@ -979,6 +979,12 @@ body.cast-tv-on { overflow: hidden; }
 .bk-content .bk-exam { margin: 1.4em 0; padding: 4px 16px 6px; border-left: 4px solid var(--cyan); border-radius: 10px;
   background: color-mix(in srgb, var(--cyan) 7%, transparent); }
 .bk-content .bk-exam h3 { margin-top: .8em; color: var(--cyan); }
+/* Section « Expert AWS Architecte Certification » : encadré doré, plus marqué que « À retenir » */
+.bk-content .bk-exam.bk-expert { border: 1px solid color-mix(in srgb, #e0a100 45%, transparent); border-left: 5px solid #e0a100;
+  background: linear-gradient(135deg, color-mix(in srgb, #e0a100 10%, transparent), color-mix(in srgb, var(--cyan) 5%, transparent)); }
+.bk-content .bk-exam.bk-expert h3 { color: #f2c14e; }
+:root[data-theme="light"] .bk-content .bk-exam.bk-expert h3 { color: #9a6a00; }
+.bk-content .bk-exam.bk-expert li { margin: .35em 0; }
 .bk-content .bk-tip { margin: 1em 0; padding: 8px 14px; border-left: 4px solid #f5a623; border-radius: 10px;
   background: color-mix(in srgb, #f5a623 8%, transparent); }
 .bk-content table { margin: 0 0 1.1em; font-size: .9em; }
@@ -1058,7 +1064,7 @@ body.cast-tv-on { overflow: hidden; }
   box-shadow: 0 0 0 1px var(--line); }
 .bk-content figcaption, .cast-text figcaption { margin-top: .5em; font-size: .86em; color: var(--muted); line-height: 1.45; }
 .bk-content .bk-table { margin: 0 0 1.1em; overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
-.bk-content .bk-table table { margin: 0; border-collapse: collapse; min-width: 60%; }
+.bk-content .bk-table table { margin: 0; max-width: none; border-collapse: collapse; min-width: 60%; }
 .bk-content .bk-table th { background: var(--bg-2); font-weight: 600; }
 .bk-content caption, .cast-text caption { caption-side: top; text-align: left; padding: 0 0 .4em; font-size: .9em; color: var(--muted); }
 .bk-zoom { position: fixed; inset: 0; z-index: 200; background: rgba(0, 0, 0, .92); display: flex; }
