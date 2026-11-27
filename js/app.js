@@ -2,6 +2,7 @@ import { SupabaseStore, LocalStore, latestByQuestion } from "./store.js";
 import { t, getLang, setLang, locale } from "./i18n.js";
 import { offlineEnabled, registerSW, unregisterSW, autonomous, setAutonomous } from "./offline.js";
 import { createSuivi } from "./suivi.js";
+import { createAwsPlan } from "./aws-plan.js";
 import { createBooks } from "./books.js";
 import { initTV } from "./tv.js";
 import { initCast, isCastTv, renderTvHome } from "./cast.js";
@@ -300,13 +301,37 @@ function rerender() {
 
 // ------------------------------------------------------------------ onglet Suivi (planning de formation)
 function suivi() {
-  if (!state.suivi) state.suivi = createSuivi({ store: state.store, getLang, esc, toast, userId: () => state.session?.user?.id });
+  if (!state.suivi) state.suivi = createSuivi({ store: state.store, getLang, esc, toast, userId: () => state.session?.user?.id,
+    onPulled: () => { if (state.aws) { state.aws.reload(); } } });
   return state.suivi;
 }
+// Cursus AWS (SAA-C03 puis SCS-C03) : planning calculé, données dans la même ligne Supabase que le suivi Splunk
+function awsPlan() {
+  if (!state.aws) state.aws = createAwsPlan({ getLang, esc, toast,
+    getData: () => suivi().getExt("aws"), setData: v => suivi().setExt("aws", v), statusOf: () => suivi().statusOf(),
+    chapterBest: id => (state.questions.some(q => q.chapter_id === id) ? chapterStats(id).best : -1),
+    startChapter: id => {
+      const qs = state.questions.filter(q => q.chapter_id === id);
+      if (!qs.length) return toast(getLang() === "fr" ? "Chapitre introuvable (onglet AWS archivé ou pas encore chargé ?)" : "Chapter not found (AWS tab archived or not loaded yet?)", "warn");
+      if (id === 200) startQuiz({ mode: "exam", chapter_id: id, lab: { k: "test", id }, questions: qs, feedback: false, timed: qs.length * secPerQ("aws") });
+      else startQuiz({ mode: "chapter", chapter_id: id, lab: { k: "chapter", id }, questions: shuffle(qs), feedback: true });
+    } });
+  return state.aws;
+}
+const CURSUS_KEY = "mycertif-cursus";
+const curCursus = () => { try { return localStorage.getItem(CURSUS_KEY) === "splunk" ? "splunk" : "aws"; } catch { return "aws"; } };
 function renderSuiviView() {
   stopTimer();
   state.view = "suivi";
-  suivi().render(app);
+  const cur = curCursus(), fr = getLang() === "fr";
+  app.innerHTML = `<div class="seg cursus-switch" role="tablist" aria-label="${fr ? "Cursus" : "Path"}">
+      <button class="seg-btn" data-cursus="aws" aria-pressed="${cur === "aws"}">AWS · SAA → SCS</button>
+      <button class="seg-btn" data-cursus="splunk" aria-pressed="${cur === "splunk"}">Splunk · 1001 → 1003</button>
+    </div><div id="cursus-body"></div>`;
+  app.querySelectorAll("[data-cursus]").forEach(b => (b.onclick = () => { try { localStorage.setItem(CURSUS_KEY, b.dataset.cursus); } catch {} renderSuiviView(); }));
+  const body = app.querySelector("#cursus-body");
+  if (cur === "aws") { suivi().detach(); awsPlan().render(body); }
+  else { if (state.aws) state.aws.detach(); suivi().render(body); }
 }
 // ------------------------------------------------------------------ onglet Books (livres : lecture, audio, quiz)
 function books() {
@@ -522,7 +547,8 @@ async function boot() {
 
   document.getElementById("btn-logout").addEventListener("click", async () => {
     stopTimer(); await state.store.signOut(); unregisterSW(); state.session = null; state.chapters = [];
-    if (state.suivi) { state.suivi.forget(); state.suivi = null; }   // le suivi d'un compte ne reste pas sur l'appareil
+    if (state.suivi) { state.suivi.forget(); state.suivi = null; }
+    state.aws = null;   // le suivi d'un compte ne reste pas sur l'appareil
     if (state.books) { state.books.forget(); state.books = null; }
     renderLogin(); paintNav();
   });

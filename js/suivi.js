@@ -105,12 +105,13 @@ export function normalize(s) {
   }
   if (s.exams && typeof s.exams === "object") for (const e of EXAMS) { const x = s.exams[e.code]; if (x) out.exams[e.code] = { registered: !!x.registered, passed: !!x.passed }; }
   if (typeof s.rate === "number" && isFinite(s.rate) && s.rate >= 0) out.rate = s.rate;
+  if (s.aws && typeof s.aws === "object" && !Array.isArray(s.aws)) out.aws = s.aws;   // cursus AWS (js/aws-plan.js), même ligne Supabase
   return out;
 }
 const rdj = k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
 const wrj = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
-export function createSuivi({ store, getLang, toast, esc, userId }) {
+export function createSuivi({ store, getLang, toast, esc, userId, onPulled }) {
   let S = normalize(rdj(STORE_KEY));
   let tab = (() => { try { return localStorage.getItem(TAB_KEY) || "plan"; } catch { return "plan"; } })();
   let openWeeks = null, root = null, status = "", busy = false, pushTimer = null;
@@ -167,7 +168,7 @@ export function createSuivi({ store, getLang, toast, esc, userId }) {
       const m = meta(), rAt = data ? Date.parse(data.updated_at) || 0 : 0, dirty = m.updatedAt > (m.syncedAt || 0);
       if (data && data.data && (!dirty || rAt > m.updatedAt)) {
         const next = normalize(data.data);
-        if (JSON.stringify(next) !== JSON.stringify(S)) { S = next; wrj(STORE_KEY, S); openWeeks = null; if (root) render(); if (!quiet) toast(t("pulled"), "ok"); }
+        if (JSON.stringify(next) !== JSON.stringify(S)) { S = next; wrj(STORE_KEY, S); openWeeks = null; if (root) render(); if (onPulled) onPulled(); if (!quiet) toast(t("pulled"), "ok"); }
         setMeta({ updatedAt: rAt, syncedAt: rAt });
       } else if (!data || dirty) {
         if (!m.updatedAt) setMeta({ updatedAt: Date.now() });
@@ -391,5 +392,10 @@ export function createSuivi({ store, getLang, toast, esc, userId }) {
     }));
   }
 
-  return { render, sync, forget };
+  /* données d'un autre cursus gardées dans la même ligne (clé « aws ») */
+  const getExt = k => S[k] || null;
+  const setExt = (k, v) => { S[k] = v; save(); };
+  const detach = () => { root = null; };
+  const statusOf = () => (remote() ? status : "local");
+  return { render, sync, forget, getExt, setExt, detach, statusOf };
 }
