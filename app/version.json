@@ -1,9 +1,9 @@
 {
-  "versionCode": 60,
-  "versionName": "3.39",
+  "versionCode": 61,
+  "versionName": "3.40",
   "apk": "https://github.com/HamzaBENAZOUZ/MyCertif/raw/main/app/MyCertif.apk",
   "notes": {
-    "fr": "Onglet Résumé : temps de lecture et d'écoute de chaque chapitre et de chaque cours, avec ce qui est déjà fait et ce qui reste. Barre du haut et barre du bas toujours entières dans l'écran, même avec une grande police.",
-    "en": "Summaries tab: reading and listening time for each chapter and course, with what is done and what is left. Top and bottom bars always fit the screen, even with a large font."
+    "fr": "Résumés Neal Davis enrichis (environ 30 000 mots au total) : le cursus AWS recalcule les 40 min d'écoute quotidiennes avec leur nouvelle durée.",
+    "en": "Richer Neal Davis summaries (about 30,000 words in all): the AWS path recomputes the daily 40 min listening with their new length."
   }
 }

@@ -351,7 +351,7 @@ export function schedule(S) {
 /* ------------------------------------------------------------------ écoute des livres (40 min par jour, en plus de la séance) */
 // Nombre de mots des résumés MyCertif (relevé le 27/11/2026) : la durée d'écoute = mots / 155 par minute (vitesse 1×).
 const LW = { "aws-saa-c03": [8572, 13382, 10570, 11248, 10225, 6464, 6546, 6323, 4961, 10375, 8713, 8381, 6506],
-  "aws-neal-davis": [3455, 2609, 2735, 1836, 1778, 437, 1186, 1180, 2778, 1338] };
+  "aws-neal-davis": [5239, 4208, 4388, 3259, 2612, 743, 1833, 1687, 3791, 2132] };
 const NEAL_T = [["Calcul", "Compute"], ["Stockage", "Storage"], ["Réseau et diffusion de contenu", "Networking & Content Delivery"], ["Bases de données", "Database"],
   ["Outils de gestion", "Management Tools"], ["Services média", "Media Services"], ["Analytique", "Analytics"], ["Intégration d'applications", "Application Integration"],
   ["Sécurité, identité et conformité", "Security, Identity & Compliance"], ["Migration", "Migration"]];
