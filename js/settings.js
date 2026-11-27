@@ -54,6 +54,7 @@ const TX = {
     font: "Taille du texte", fontDesc: "Agrandit ou réduit tout le texte de l'application (sur ce téléphone, cette tablette ou cette télé).",
     fonts: ["Petite", "Normale", "Grande", "Très grande", "Énorme"], fontPrev: "Aperçu : voici la taille des questions et des livres.",
     bfont: "Taille du texte des livres", bfontDesc: "Agrandit seulement le texte des livres, pas l'appli. Aussi réglable dans le livre (A− / A+, ⚙ ou Aa) ou en pinçant l'écran.",
+    sumArch: "Résumés archivés", sumArchDesc: "Les cours archivés depuis l'onglet Résumé sont masqués de cet onglet (rien n'est supprimé, la progression est gardée).", sumRestore: "Désarchiver", sumNone: "Aucun cours archivé.", sumRestored: "« {c} » est de retour dans l'onglet Résumé.",
     app: "// APPLICATION", ver: "Version", check: "Vérifier les mises à jour", upToDate: "L'application est à jour.", site: "site web",
   },
   en: {
@@ -77,6 +78,7 @@ const TX = {
     font: "Text size", fontDesc: "Makes all the text in the app bigger or smaller (on this phone, tablet or TV).",
     fonts: ["Small", "Normal", "Large", "Extra large", "Huge"], fontPrev: "Preview: this is the size of questions and books.",
     bfont: "Book text size", bfontDesc: "Makes only the books' text bigger, not the app. Also adjustable inside a book (A− / A+, ⚙ or Aa) or by pinching the screen.",
+    sumArch: "Archived summaries", sumArchDesc: "Courses archived from the Summaries tab are hidden there (nothing is deleted, progress is kept).", sumRestore: "Unarchive", sumNone: "No archived course.", sumRestored: "“{c}” is back in the Summaries tab.",
     app: "// APPLICATION", ver: "Version", check: "Check for updates", upToDate: "The app is up to date.", site: "website",
   },
 };
@@ -165,6 +167,14 @@ export function renderSettings(ctx) {
       </section>
 
       <section class="panel set-sec">
+        <h3 class="mono">🗄️ ${esc(T("sumArch"))}</h3>
+        <p class="muted">${esc(T("sumArchDesc"))}</p>
+        ${B.sumArchived ? (B.sumArchived().length ? `<ul class="arch-list">${B.sumArchived().map(x => `<li><span class="mono">${esc(x.name)}</span>
+          <button class="btn btn-ghost btn-sm" data-sum-restore="${esc(x.k)}">↩️ ${esc(T("sumRestore"))}</button></li>`).join("")}</ul>`
+          : `<p class="muted small mono">${esc(T("sumNone"))}</p>`) : ""}
+      </section>
+
+      <section class="panel set-sec">
         <h3 class="mono">${esc(T("app"))}</h3>
         <div class="set-row"><span>${esc(T("ver"))}</span><span class="mono">${esc(ctx.version || T("site"))}</span></div>
         ${inApp ? `<button class="btn btn-ghost btn-sm" id="set-upd">🔄 ${esc(T("check"))}</button>` : ""}
@@ -177,6 +187,10 @@ export function renderSettings(ctx) {
   const bind = () => {
     app.querySelectorAll("[data-vdl]").forEach(b => b.onclick = () => { AV.download(b.dataset.vdl); });
     app.querySelectorAll("[data-vcancel]").forEach(b => b.onclick = () => AV.cancel());
+    app.querySelectorAll("[data-sum-restore]").forEach(b => b.onclick = () => {
+      const x = B.sumArchived().find(y => y.k === b.dataset.sumRestore); B.sumRestore(b.dataset.sumRestore);
+      if (ctx.toast && x) ctx.toast(T("sumRestored", { c: x.name }), "ok"); paint();
+    });
     app.querySelectorAll("[data-vrm]").forEach(b => b.onclick = () => {
       if (confirm(T("rmConfirm", { l: T(b.dataset.vrm).toLowerCase() }))) AV.remove(b.dataset.vrm);
     });

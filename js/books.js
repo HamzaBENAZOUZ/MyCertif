@@ -72,7 +72,7 @@ const L = {
     trDevice: "Traduction automatique sur le téléphone : le texte peut contenir des erreurs.",
     gap: "Pause entre les phrases (téléphone et voiture)", gapNone: "aucune", dec: ",",
     chain: "Enchaîner automatiquement le chapitre suivant", awake: "Garder l'écran allumé pendant l'écoute", backLib: "Bibliothèque",
-    sumTitle: "Résumés", sumSub: "Les résumés des chapitres, à lire ou à écouter, rangés par certification.", sumRead: "Lire", sumListen: "Écouter", sumCont: "Reprendre", sumOther: "Autres livres", sumEmpty: "Aucun résumé pour l'instant.", sumChN: "{n} chapitres",
+    sumTitle: "Résumés", sumSub: "Les résumés des chapitres, à lire ou à écouter, rangés par certification.", sumRead: "Lire", sumListen: "Écouter", sumCont: "Reprendre", sumOther: "Autres livres", sumEmpty: "Aucun résumé pour l'instant.", sumChN: "{n} chapitres", sumArch: "Archiver", sumArchOk: "« {c} » archivé. Pour le retrouver : Paramètres > Résumés archivés.", sumAllArch: "Tous les cours sont archivés. Tu peux les désarchiver dans Paramètres > Résumés archivés.",
     bgT: "Écoute écran éteint", bgOk: "Prêt : la lecture continue appli fermée ou téléphone verrouillé, avec la notification de lecture.",
     bgNotif: "Notifications coupées : la commande lecture / pause n'apparaîtra pas en haut de l'écran.", bgNotifB: "Autoriser les notifications",
     bgBat: "Le téléphone peut couper la lecture quand l'écran est éteint.", bgBatB: "Batterie sans restriction",
@@ -153,7 +153,7 @@ const L = {
     trDevice: "Machine translation on the phone: the text may contain mistakes.",
     gap: "Pause between sentences (phone and car)", gapNone: "none", dec: ".",
     chain: "Automatically continue with the next chapter", awake: "Keep the screen on while listening", backLib: "Library",
-    sumTitle: "Summaries", sumSub: "Chapter summaries to read or listen to, grouped by certification.", sumRead: "Read", sumListen: "Listen", sumCont: "Resume", sumOther: "Other books", sumEmpty: "No summaries yet.", sumChN: "{n} chapters",
+    sumTitle: "Summaries", sumSub: "Chapter summaries to read or listen to, grouped by certification.", sumRead: "Read", sumListen: "Listen", sumCont: "Resume", sumOther: "Other books", sumEmpty: "No summaries yet.", sumChN: "{n} chapters", sumArch: "Archive", sumArchOk: "“{c}” archived. To get it back: Settings > Archived summaries.", sumAllArch: "Every course is archived. You can unarchive them in Settings > Archived summaries.",
     bgT: "Screen-off listening", bgOk: "Ready: reading goes on with the app closed or the phone locked, with the playback notification.",
     bgNotif: "Notifications are off: the play / pause control will not show at the top of the screen.", bgNotifB: "Allow notifications",
     bgBat: "The phone may stop reading when the screen is off.", bgBatB: "Unrestricted battery",
@@ -1065,6 +1065,11 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
     { k: "splunk", fr: "Splunk (SPLK-1001 / SPLK-1002)", en: "Splunk (SPLK-1001 / SPLK-1002)", ids: ["splunk-core-companion", "mastering-splunk"] },
     { k: "ceh", fr: "Certified Ethical Hacker (CEH)", en: "Certified Ethical Hacker (CEH)", ids: ["ceh-walker"] },
   ];
+  // cours archivés de l'onglet Résumé (sur cet appareil) : masqués, rien n'est supprimé ; désarchivage dans Paramètres
+  const SUM_ARCH = "mycertif-sum-arch";
+  const sumArch = () => { try { const a = JSON.parse(localStorage.getItem(SUM_ARCH) || "[]"); return Array.isArray(a) ? a : []; } catch { return []; } };
+  const setSumArch = (k, on) => { const a = new Set(sumArch()); if (on) a.add(k); else a.delete(k); try { localStorage.setItem(SUM_ARCH, JSON.stringify([...a])); } catch { /* */ } };
+  const sumName = k => { const c = SUM_CERTS.find(x => x.k === k); return c ? c[uiLang()] : t("sumOther"); };
   async function summaries(el) {
     root = el; stop(); setCastAction(null);
     root.innerHTML = `<div class="boot"><p class="mono">&gt; resumes<span class="cursor">_</span></p></div>`;
@@ -1096,18 +1101,23 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
       </details>`;
     };
     const known = new Set(SUM_CERTS.flatMap(c => c.ids));
-    const groups = SUM_CERTS.map(c => ({ name: c[ul], list: c.ids.map(id => all.find(b => b.id === id)).filter(Boolean) }))
+    const groups = SUM_CERTS.map(c => ({ k: c.k, name: c[ul], list: c.ids.map(id => all.find(b => b.id === id)).filter(Boolean) }))
       .filter(g => g.list.length);
     // livres fournis avec l'appli mais pas encore classés (les livres importés ne sont pas des résumés)
     const rest = all.filter(b => !known.has(b.id) && !upl(b) && !/^u-/.test(b.id));
-    if (rest.length) groups.push({ name: t("sumOther"), list: rest });
+    if (rest.length) groups.push({ k: "other", name: t("sumOther"), list: rest });
+    const arch = sumArch(), shown = groups.filter(g => !arch.includes(g.k));
     root.innerHTML = `<div class="bk-sum">
       <section class="hero"><p class="mono kicker">&gt; resumes --lire --ecouter</p><h1>${esc(t("sumTitle"))}</h1>
         <p class="muted">${esc(t("sumSub"))}</p></section>
-      ${groups.length ? groups.map(g => `<section class="sum-cert"><h2 class="mono sum-ct">${esc(g.name)}</h2>${g.list.map(bookBlock).join("")}</section>`).join("")
-        : `<p class="muted">${esc(t("sumEmpty"))}</p>`}
+      ${shown.length ? shown.map(g => `<section class="sum-cert"><div class="sum-ch"><h2 class="mono sum-ct">${esc(g.name)}</h2>
+          <button class="btn btn-ghost btn-xs" data-sum-arch="${g.k}">🗄️ ${esc(t("sumArch"))}</button></div>${g.list.map(bookBlock).join("")}</section>`).join("")
+        : `<p class="muted">${esc(t(groups.length ? "sumAllArch" : "sumEmpty"))}</p>`}
     </div>`;
     root.querySelectorAll("details[data-sum-book]").forEach(d => d.addEventListener("toggle", () => { if (d.open) SUM_OPEN = d.dataset.sumBook; }));
+    root.querySelectorAll("[data-sum-arch]").forEach(btn => btn.onclick = () => {
+      const k = btn.dataset.sumArch; setSumArch(k, true); toast(t("sumArchOk", { c: sumName(k) }), "ok"); summaries(el);
+    });
     root.querySelectorAll("[data-sum-listen]").forEach(btn => btn.onclick = () => {
       const [id, n] = btn.dataset.sumListen.split("|");
       try { sessionStorage.setItem("bk-auto", id + "|" + n + "|r"); } catch { /* */ }
@@ -2415,7 +2425,7 @@ export function createBooks({ store, getLang, esc, toast, userId, tts }) {
   }
   const nextOf = (b, n) => { const i = b.chapters.findIndex(c => c.n === n); return b.chapters[i + 1] && b.chapters[i + 1].n; };
 
-  return { render, summaries, sync, forget, stop, carSyncAll,
+  return { render, summaries, sumArchived: () => sumArch().map(k => ({ k, name: sumName(k) })), sumRestore: k => setSumArch(k, false), sync, forget, stop, carSyncAll,
     // onglet Paramètres : mêmes préférences de lecture que le lecteur
     prefs: () => prefs, RATES: RATE_PRESETS, GAPS,
     setPref: (k, v) => { prefs[k] = k === "rate" ? clampRate(v) : k === "font" ? clampBf(v) : v; savePrefs(); }, BF_PRE,
